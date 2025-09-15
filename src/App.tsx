@@ -24,9 +24,9 @@ const App = () => (
             <Route path="/clients" element={<Clients />} />
             <Route path="/collections" element={<Collections />} />
             <Route path="/products" element={<Products />} />
-            <Route path="/materials" element={<div className="p-6"><h1 className="text-3xl font-bold">Materials</h1><p className="text-muted-foreground">Material library coming soon...</p></div>} />
-            <Route path="/workflow" element={<div className="p-6"><h1 className="text-3xl font-bold">Workflow</h1><p className="text-muted-foreground">Kanban board coming soon...</p></div>} />
-            <Route path="/reports" element={<div className="p-6"><h1 className="text-3xl font-bold">Reports</h1><p className="text-muted-foreground">Analytics dashboard coming soon...</p></div>} />
+            <Route path="/materials" element={<div className="p-6"><h1 className="text-3xl font-bold">Materiais</h1><p className="text-muted-foreground">Biblioteca de materiais em breve...</p></div>} />
+            <Route path="/workflow" element={<div className="p-6"><h1 className="text-3xl font-bold">Fluxo de Trabalho</h1><p className="text-muted-foreground">Quadro Kanban em breve...</p></div>} />
+            <Route path="/reports" element={<div className="p-6"><h1 className="text-3xl font-bold">Relatórios</h1><p className="text-muted-foreground">Dashboard de analytics em breve...</p></div>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

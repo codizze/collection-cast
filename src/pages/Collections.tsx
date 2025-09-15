@@ -46,59 +46,59 @@ const Collections = () => {
   const mockCollections: Collection[] = [
     {
       id: "1",
-      name: "Spring Awakening 2024",
+      name: "Despertar da Primavera 2024",
       client: "Schutz",
-      season: "Spring/Summer 2024",
+      season: "Primavera/Verão 2024",
       startDate: "2024-01-15",
       endDate: "2024-04-30", 
       status: "in-progress",
       modelsCount: 45,
       completedModels: 32,
       progress: 71,
-      description: "Fresh and vibrant collection featuring botanical prints and sustainable materials"
+      description: "Coleção fresca e vibrante com estampas botânicas e materiais sustentáveis"
     },
     {
       id: "2",
-      name: "Urban Elegance",
+      name: "Elegância Urbana",
       client: "Arezzo", 
-      season: "Fall/Winter 2024",
+      season: "Outono/Inverno 2024",
       startDate: "2024-02-01",
       endDate: "2024-06-15",
       status: "in-progress",
       modelsCount: 38,
       completedModels: 15,
       progress: 39,
-      description: "Sophisticated city-inspired designs with premium leather and metal accents"
+      description: "Designs sofisticados inspirados na cidade com couro premium e detalhes metálicos"
     },
     {
       id: "3",
-      name: "Summer Vibes",
+      name: "Vibes de Verão",
       client: "Luiza Barcelos",
-      season: "Summer 2024",
+      season: "Verão 2024",
       startDate: "2024-01-01",
       endDate: "2024-03-31",
       status: "completed",
       modelsCount: 28,
       completedModels: 28,
       progress: 100,
-      description: "Colorful and playful summer collection with tropical influences"
+      description: "Coleção colorida e divertida de verão com influências tropicais"
     },
     {
       id: "4",
-      name: "Classic Reborn",
+      name: "Clássico Renascido",
       client: "Schutz",
-      season: "Timeless Collection",
+      season: "Coleção Atemporal",
       startDate: "2024-03-01", 
       endDate: "2024-07-30",
       status: "planning",
       modelsCount: 22,
       completedModels: 3,
       progress: 14,
-      description: "Revival of iconic styles with modern materials and techniques"
+      description: "Revival de estilos icônicos com materiais e técnicas modernas"
     },
     {
       id: "5",
-      name: "Metallic Dreams", 
+      name: "Sonhos Metálicos", 
       client: "Fashion Brand X",
       season: "Holiday 2024",
       startDate: "2024-02-15",
@@ -107,7 +107,7 @@ const Collections = () => {
       modelsCount: 18,
       completedModels: 8,
       progress: 44,
-      description: "Luxurious holiday collection featuring metallic finishes and crystals"
+      description: "Coleção luxuosa de festa com acabamentos metálicos e cristais"
     }
   ];
 
@@ -143,32 +143,32 @@ const Collections = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Collections</h1>
-          <p className="text-muted-foreground">Track development progress across all client collections</p>
+          <h1 className="text-3xl font-bold">Coleções</h1>
+          <p className="text-muted-foreground">Acompanhe o progresso de desenvolvimento de todas as coleções dos clientes</p>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-primary hover:opacity-90">
               <Plus className="mr-2 h-4 w-4" />
-              New Collection
+              Nova Coleção
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Create New Collection</DialogTitle>
+              <DialogTitle>Criar Nova Coleção</DialogTitle>
             </DialogHeader>
             <form className="space-y-4">
               <div>
-                <Label htmlFor="collectionName">Collection Name</Label>
-                <Input id="collectionName" placeholder="Spring Collection 2024" />
+                <Label htmlFor="collectionName">Nome da Coleção</Label>
+                <Input id="collectionName" placeholder="Coleção Primavera 2024" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="client">Client</Label>
+                  <Label htmlFor="client">Cliente</Label>
                   <Select>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select client" />
+                      <SelectValue placeholder="Selecionar cliente" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="schutz">Schutz</SelectItem>
@@ -178,26 +178,26 @@ const Collections = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="season">Season</Label>
-                  <Input id="season" placeholder="Spring/Summer 2024" />
+                  <Label htmlFor="season">Estação</Label>
+                  <Input id="season" placeholder="Primavera/Verão 2024" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="startDate">Start Date</Label>
+                  <Label htmlFor="startDate">Data de Início</Label>
                   <Input id="startDate" type="date" />
                 </div>
                 <div>
-                  <Label htmlFor="endDate">End Date</Label>
+                  <Label htmlFor="endDate">Data de Término</Label>
                   <Input id="endDate" type="date" />
                 </div>
               </div>
               <div className="flex justify-end gap-3">
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
+                  Cancelar
                 </Button>
                 <Button className="bg-gradient-primary" onClick={() => setIsDialogOpen(false)}>
-                  Create Collection
+                  Criar Coleção
                 </Button>
               </div>
             </form>
@@ -210,7 +210,7 @@ const Collections = () => {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Search collections..."
+            placeholder="Buscar coleções..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -218,15 +218,15 @@ const Collections = () => {
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder="Filtrar por status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="planning">Planning</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="review">In Review</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="delayed">Delayed</SelectItem>
+            <SelectItem value="all">Todos os Status</SelectItem>
+            <SelectItem value="planning">Planejamento</SelectItem>
+            <SelectItem value="in-progress">Em Andamento</SelectItem>
+            <SelectItem value="review">Em Revisão</SelectItem>
+            <SelectItem value="completed">Concluída</SelectItem>
+            <SelectItem value="delayed">Atrasada</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -241,7 +241,14 @@ const Collections = () => {
                   <div className="flex items-center gap-2 mb-2">
                     <Badge className={getStatusColor(collection.status)} variant="secondary">
                       {getStatusIcon(collection.status)}
-                      <span className="ml-1 capitalize">{collection.status.replace('-', ' ')}</span>
+                      <span className="ml-1 capitalize">
+                        {collection.status === 'completed' ? 'concluída' :
+                         collection.status === 'in-progress' ? 'em andamento' :
+                         collection.status === 'delayed' ? 'atrasada' :
+                         collection.status === 'planning' ? 'planejamento' :
+                         collection.status === 'review' ? 'revisão' :
+                         collection.status}
+                      </span>
                     </Badge>
                   </div>
                   <CardTitle className="text-lg mb-1">{collection.name}</CardTitle>
@@ -259,15 +266,15 @@ const Collections = () => {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>
                       <Eye className="mr-2 h-4 w-4" />
-                      View Details
+                      Ver Detalhes
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Edit className="mr-2 h-4 w-4" />
-                      Edit
+                      Editar
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-destructive">
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      Excluir
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -282,12 +289,12 @@ const Collections = () => {
               {/* Progress */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Progress</span>
+                  <span className="text-muted-foreground">Progresso</span>
                   <span className="font-medium">{collection.progress}%</span>
                 </div>
                 <Progress value={collection.progress} className="h-2" />
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{collection.completedModels} of {collection.modelsCount} models</span>
+                  <span>{collection.completedModels} de {collection.modelsCount} modelos</span>
                 </div>
               </div>
 
@@ -299,7 +306,7 @@ const Collections = () => {
                 </div>
                 <div className="flex items-center text-muted-foreground">
                   <Package className="mr-2 h-4 w-4" />
-                  {collection.modelsCount} models
+                  {collection.modelsCount} modelos
                 </div>
                 <div className="flex items-center text-muted-foreground">
                   <Calendar className="mr-2 h-4 w-4" />
@@ -309,7 +316,7 @@ const Collections = () => {
 
               <div className="pt-2 border-t">
                 <Button variant="outline" className="w-full">
-                  View Collection
+                  Ver Coleção
                 </Button>
               </div>
             </CardContent>
@@ -320,16 +327,16 @@ const Collections = () => {
       {filteredCollections.length === 0 && (
         <div className="text-center py-12">
           <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">No collections found</h3>
+          <h3 className="text-lg font-medium mb-2">Nenhuma coleção encontrada</h3>
           <p className="text-muted-foreground mb-4">
             {searchTerm || filterStatus !== "all" 
-              ? "Try adjusting your search or filters" 
-              : "Start by creating your first collection"
+              ? "Tente ajustar sua busca ou filtros" 
+              : "Comece criando sua primeira coleção"
             }
           </p>
           <Button className="bg-gradient-primary" onClick={() => setIsDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            New Collection
+            Nova Coleção
           </Button>
         </div>
       )}

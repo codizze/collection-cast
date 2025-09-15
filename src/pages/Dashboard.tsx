@@ -16,30 +16,30 @@ import heroImage from "@/assets/hero-fashion-factory.jpg";
 const Dashboard = () => {
   const stats = [
     {
-      title: "Active Clients",
+      title: "Clientes Ativos",
       value: "12",
-      change: "+2 this month",
+      change: "+2 neste mês",
       icon: Users,
       color: "fashion-elegant"
     },
     {
-      title: "Collections in Progress",
+      title: "Coleções em Andamento",
       value: "8",
-      change: "3 due this week",
+      change: "3 vencem esta semana",
       icon: FolderOpen,
       color: "fashion-luxury"
     },
     {
-      title: "Product Models",
+      title: "Modelos de Produtos",
       value: "247",
-      change: "+18 this week",
+      change: "+18 esta semana",
       icon: Package,
       color: "fashion-success"
     },
     {
-      title: "Pending Tasks",
+      title: "Tarefas Pendentes",
       value: "34",
-      change: "5 overdue",
+      change: "5 em atraso",
       icon: Clock,
       color: "fashion-warning"
     }
@@ -48,23 +48,23 @@ const Dashboard = () => {
   const recentActivity = [
     {
       client: "Schutz",
-      collection: "Spring 2024",
-      action: "New model added",
-      time: "2 hours ago",
+      collection: "Primavera 2024",
+      action: "Novo modelo adicionado",
+      time: "há 2 horas",
       status: "design"
     },
     {
       client: "Arezzo",
-      collection: "Summer Collection", 
-      action: "Sample approved",
-      time: "4 hours ago",
+      collection: "Coleção Verão", 
+      action: "Amostra aprovada",
+      time: "há 4 horas",
       status: "approved"
     },
     {
       client: "Luiza Barcelos",
-      collection: "Fall Preview",
-      action: "Materials updated",
-      time: "1 day ago",
+      collection: "Preview Outono",
+      action: "Materiais atualizados",
+      time: "há 1 dia",
       status: "sample"
     }
   ];
@@ -85,11 +85,11 @@ const Dashboard = () => {
               Fashion Factory
             </h1>
             <p className="text-xl text-primary-foreground/90 mb-6 max-w-2xl">
-              Streamline your private label collections with sophisticated project management
+              Gerencie suas coleções de marca própria com sofisticação e eficiência
             </p>
             <Button variant="secondary" size="lg" className="shadow-elegant">
               <Plus className="mr-2 h-5 w-5" />
-              Create New Collection
+              Criar Nova Coleção
             </Button>
           </div>
         </div>
@@ -126,11 +126,11 @@ const Dashboard = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl">Recent Activity</CardTitle>
-                  <CardDescription>Latest updates from your collections</CardDescription>
+                  <CardTitle className="text-xl">Atividade Recente</CardTitle>
+                  <CardDescription>Últimas atualizações das suas coleções</CardDescription>
                 </div>
                 <Button variant="outline" size="sm">
-                  View All
+                  Ver Todas
                 </Button>
               </div>
             </CardHeader>
@@ -179,24 +179,24 @@ const Dashboard = () => {
             {/* Quick Actions */}
             <Card className="border-0 shadow-custom-md">
               <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
+                <CardTitle className="text-lg">Ações Rápidas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button className="w-full justify-start bg-gradient-primary hover:opacity-90" size="lg">
                   <Plus className="mr-2 h-4 w-4" />
-                  New Collection
+                  Nova Coleção
                 </Button>
                 <Button variant="outline" className="w-full justify-start" size="lg">
                   <Users className="mr-2 h-4 w-4" />
-                  Add Client
+                  Adicionar Cliente
                 </Button>
                 <Button variant="outline" className="w-full justify-start" size="lg">
                   <Package className="mr-2 h-4 w-4" />
-                  Create Product Model
+                  Criar Modelo de Produto
                 </Button>
                 <Button variant="outline" className="w-full justify-start" size="lg">
                   <Calendar className="mr-2 h-4 w-4" />
-                  Schedule Review
+                  Agendar Revisão
                 </Button>
               </CardContent>
             </Card>
@@ -206,20 +206,20 @@ const Dashboard = () => {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center">
                   <AlertCircle className="mr-2 h-5 w-5 text-fashion-warning" />
-                  Attention Required
+                  Atenção Necessária
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="text-sm">
-                  <p className="font-medium">5 tasks overdue</p>
-                  <p className="text-muted-foreground">Schutz Spring collection needs review</p>
+                  <p className="font-medium">5 tarefas em atraso</p>
+                  <p className="text-muted-foreground">Coleção Primavera Schutz precisa de revisão</p>
                 </div>
                 <div className="text-sm">
-                  <p className="font-medium">Material shortage alert</p>
-                  <p className="text-muted-foreground">Croco leather running low</p>
+                  <p className="font-medium">Alerta de falta de material</p>
+                  <p className="text-muted-foreground">Couro croco com estoque baixo</p>
                 </div>
                 <Button variant="outline" size="sm" className="w-full">
-                  View Details
+                  Ver Detalhes
                 </Button>
               </CardContent>
             </Card>

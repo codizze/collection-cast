@@ -43,24 +43,24 @@ const Clients = () => {
       id: "1",
       name: "Schutz",
       cnpj: "12.345.678/0001-90",
-      email: "contact@schutz.com.br",
+      email: "contato@schutz.com.br",
       phone: "+55 11 98765-4321",
       address: "São Paulo, SP",
       collectionsCount: 15,
       activeCollections: 3,
-      lastActivity: "2 days ago",
+      lastActivity: "há 2 dias",
       status: "active"
     },
     {
       id: "2", 
       name: "Arezzo",
       cnpj: "98.765.432/0001-12",
-      email: "production@arezzo.com.br",
+      email: "producao@arezzo.com.br",
       phone: "+55 11 87654-3210",
       address: "Belo Horizonte, MG",
       collectionsCount: 22,
       activeCollections: 4,
-      lastActivity: "1 day ago",
+      lastActivity: "há 1 dia",
       status: "active"
     },
     {
@@ -72,19 +72,19 @@ const Clients = () => {
       address: "Rio de Janeiro, RJ",
       collectionsCount: 8,
       activeCollections: 2,
-      lastActivity: "5 hours ago",
+      lastActivity: "há 5 horas",
       status: "active"
     },
     {
       id: "4",
       name: "Fashion Brand X",
       cnpj: "11.222.333/0001-44",
-      email: "info@brandx.com",
+      email: "info@marcax.com",
       phone: "+55 11 65432-1098",
       address: "São Paulo, SP", 
       collectionsCount: 3,
       activeCollections: 1,
-      lastActivity: "1 week ago",
+      lastActivity: "há 1 semana",
       status: "new"
     }
   ];
@@ -108,26 +108,26 @@ const Clients = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Clients</h1>
-          <p className="text-muted-foreground">Manage your fashion brand partners</p>
+          <h1 className="text-3xl font-bold">Clientes</h1>
+          <p className="text-muted-foreground">Gerencie seus parceiros de marcas de moda</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-primary hover:opacity-90">
               <Plus className="mr-2 h-4 w-4" />
-              Add Client
+              Adicionar Cliente
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Add New Client</DialogTitle>
+              <DialogTitle>Adicionar Novo Cliente</DialogTitle>
             </DialogHeader>
             <form className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Client Name</Label>
-                  <Input id="name" placeholder="Fashion Brand Name" />
+                  <Label htmlFor="name">Nome do Cliente</Label>
+                  <Input id="name" placeholder="Nome da Marca de Moda" />
                 </div>
                 <div>
                   <Label htmlFor="cnpj">CNPJ</Label>
@@ -136,22 +136,22 @@ const Clients = () => {
               </div>
               <div>
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="contact@client.com" />
+                <Input id="email" type="email" placeholder="contato@cliente.com" />
               </div>
               <div>
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">Telefone</Label>
                 <Input id="phone" placeholder="+55 11 99999-9999" />
               </div>
               <div>
-                <Label htmlFor="address">Address</Label>
-                <Textarea id="address" placeholder="Complete address..." rows={2} />
+                <Label htmlFor="address">Endereço</Label>
+                <Textarea id="address" placeholder="Endereço completo..." rows={2} />
               </div>
               <div className="flex justify-end gap-3">
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
+                  Cancelar
                 </Button>
                 <Button className="bg-gradient-primary" onClick={() => setIsDialogOpen(false)}>
-                  Add Client
+                  Adicionar Cliente
                 </Button>
               </div>
             </form>
@@ -163,7 +163,7 @@ const Clients = () => {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
-          placeholder="Search clients by name or CNPJ..."
+          placeholder="Buscar clientes por nome ou CNPJ..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -195,18 +195,18 @@ const Clients = () => {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>
                       <Edit className="mr-2 h-4 w-4" />
-                      Edit
+                      Editar
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-destructive">
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      Excluir
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
               
               <Badge className={getStatusColor(client.status)} variant="secondary">
-                {client.status}
+                {client.status === 'active' ? 'ativo' : client.status === 'new' ? 'novo' : 'inativo'}
               </Badge>
             </CardHeader>
             
@@ -230,20 +230,20 @@ const Clients = () => {
                 <div className="flex justify-between items-center text-sm">
                   <div className="flex items-center text-muted-foreground">
                     <FolderOpen className="mr-1 h-4 w-4" />
-                    {client.collectionsCount} collections
+                    {client.collectionsCount} coleções
                   </div>
                   <div className="text-fashion-elegant font-medium">
-                    {client.activeCollections} active
+                    {client.activeCollections} ativas
                   </div>
                 </div>
                 <div className="flex items-center text-xs text-muted-foreground mt-2">
                   <Calendar className="mr-1 h-3 w-3" />
-                  Last activity: {client.lastActivity}
+                  Última atividade: {client.lastActivity}
                 </div>
               </div>
 
               <Button variant="outline" className="w-full mt-4">
-                View Collections
+                Ver Coleções
               </Button>
             </CardContent>
           </Card>
@@ -253,13 +253,13 @@ const Clients = () => {
       {filteredClients.length === 0 && (
         <div className="text-center py-12">
           <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">No clients found</h3>
+          <h3 className="text-lg font-medium mb-2">Nenhum cliente encontrado</h3>
           <p className="text-muted-foreground mb-4">
-            {searchTerm ? "Try a different search term" : "Get started by adding your first client"}
+            {searchTerm ? "Tente um termo de busca diferente" : "Comece adicionando seu primeiro cliente"}
           </p>
           <Button className="bg-gradient-primary" onClick={() => setIsDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Client
+            Adicionar Cliente
           </Button>
         </div>
       )}

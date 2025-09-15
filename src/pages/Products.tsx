@@ -45,67 +45,67 @@ const Products = () => {
   const mockProducts: Product[] = [
     {
       id: "1",
-      name: "Botanical Sandal",
-      code: "SCH-SP24-001",
-      collection: "Spring Awakening 2024",
+      name: "Sandália Botânica",
+      code: "SCH-PV24-001",
+      collection: "Despertar da Primavera 2024",
       client: "Schutz",
       status: "approved",
-      description: "Elegant sandal with botanical-inspired laser-cut details and sustainable materials",
-      materials: ["Recycled Suede", "Cork", "Bio Leather"],
+      description: "Sandália elegante com detalhes laser-cut inspirados em botânica e materiais sustentáveis",
+      materials: ["Camurça Reciclada", "Cortiça", "Bio Couro"],
       createdDate: "2024-02-15",
       imageUrl: "/api/placeholder/300/300"
     },
     {
       id: "2", 
-      name: "Urban Block Heel",
-      code: "ARZ-FW24-012",
-      collection: "Urban Elegance",
+      name: "Salto Bloco Urbano",
+      code: "ARZ-OI24-012",
+      collection: "Elegância Urbana",
       client: "Arezzo",
       status: "sample",
-      description: "Contemporary block heel with metallic accents and geometric patterns",
-      materials: ["Premium Leather", "Metal Hardware", "Rubber Sole"],
+      description: "Salto bloco contemporâneo com detalhes metálicos e padrões geométricos",
+      materials: ["Couro Premium", "Ferragem Metálica", "Solado de Borracha"],
       createdDate: "2024-02-20",
       imageUrl: "/api/placeholder/300/300"
     },
     {
       id: "3",
-      name: "Tropical Espadrille",
-      code: "LB-SM24-008",
-      collection: "Summer Vibes", 
+      name: "Espadrille Tropical",
+      code: "LB-VR24-008",
+      collection: "Vibes de Verão", 
       client: "Luiza Barcelos",
       status: "finalized",
-      description: "Colorful espadrille with tropical print and woven jute details",
-      materials: ["Canvas", "Jute", "Tropical Print"],
+      description: "Espadrille colorida com estampa tropical e detalhes de juta trançada",
+      materials: ["Lona", "Juta", "Estampa Tropical"],
       createdDate: "2024-01-10",
       imageUrl: "/api/placeholder/300/300"
     },
     {
       id: "4",
-      name: "Classic Pump Reimagined",
-      code: "SCH-TC24-005",
-      collection: "Classic Reborn",
+      name: "Scarpin Clássico Reimaginado",
+      code: "SCH-AT24-005",
+      collection: "Clássico Renascido",
       client: "Schutz",
       status: "design",
-      description: "Modern interpretation of the classic pump with innovative comfort technology",
-      materials: ["Nappa Leather", "Memory Foam", "Carbon Fiber"],
+      description: "Interpretação moderna do scarpin clássico com tecnologia de conforto inovadora",
+      materials: ["Couro Napa", "Memory Foam", "Fibra de Carbono"],
       createdDate: "2024-03-05",
       imageUrl: "/api/placeholder/300/300"
     },
     {
       id: "5",
-      name: "Metallic Statement Boot",
+      name: "Bota Statement Metálica",
       code: "FBX-HD24-003",
-      collection: "Metallic Dreams",
+      collection: "Sonhos Metálicos",
       client: "Fashion Brand X", 
       status: "briefing",
-      description: "Bold ankle boot with metallic finish and crystal embellishments",
-      materials: ["Metallic Leather", "Crystals", "Platform Sole"],
+      description: "Ankle boot ousada com acabamento metálico e aplicações de cristais",
+      materials: ["Couro Metálico", "Cristais", "Solado Plataforma"],
       createdDate: "2024-02-28",
       imageUrl: "/api/placeholder/300/300"
     }
   ];
 
-  const collections = ["Spring Awakening 2024", "Urban Elegance", "Summer Vibes", "Classic Reborn", "Metallic Dreams"];
+  const collections = ["Despertar da Primavera 2024", "Elegância Urbana", "Vibes de Verão", "Clássico Renascido", "Sonhos Metálicos"];
 
   const filteredProducts = mockProducts.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -137,38 +137,38 @@ const Products = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Product Models</h1>
-          <p className="text-muted-foreground">Manage individual product development from concept to finalization</p>
+          <h1 className="text-3xl font-bold">Modelos de Produtos</h1>
+          <p className="text-muted-foreground">Gerencie o desenvolvimento individual de produtos do conceito à finalização</p>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-primary hover:opacity-90">
               <Plus className="mr-2 h-4 w-4" />
-              New Product Model
+              Novo Modelo de Produto
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create New Product Model</DialogTitle>
+              <DialogTitle>Criar Novo Modelo de Produto</DialogTitle>
             </DialogHeader>
             <form className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="productName">Product Name</Label>
-                  <Input id="productName" placeholder="Summer Sandal" />
+                  <Label htmlFor="productName">Nome do Produto</Label>
+                  <Input id="productName" placeholder="Sandália de Verão" />
                 </div>
                 <div>
-                  <Label htmlFor="productCode">Product Code</Label>
-                  <Input id="productCode" placeholder="SCH-SP24-001" />
+                  <Label htmlFor="productCode">Código do Produto</Label>
+                  <Input id="productCode" placeholder="SCH-VR24-001" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="client">Client</Label>
+                  <Label htmlFor="client">Cliente</Label>
                   <Select>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select client" />
+                      <SelectValue placeholder="Selecionar cliente" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="schutz">Schutz</SelectItem>
@@ -178,10 +178,10 @@ const Products = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="collection">Collection</Label>
+                  <Label htmlFor="collection">Coleção</Label>
                   <Select>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select collection" />
+                      <SelectValue placeholder="Selecionar coleção" />
                     </SelectTrigger>
                     <SelectContent>
                       {collections.map(collection => (
@@ -194,35 +194,35 @@ const Products = () => {
                 </div>
               </div>
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Descrição</Label>
                 <Textarea 
                   id="description" 
-                  placeholder="Describe the product concept, target market, and key features..."
+                  placeholder="Descreva o conceito do produto, mercado-alvo e características principais..."
                   rows={3}
                 />
               </div>
               <div>
-                <Label htmlFor="materials">Materials (comma-separated)</Label>
-                <Input id="materials" placeholder="Leather, Suede, Metal Hardware" />
+                <Label htmlFor="materials">Materiais (separados por vírgula)</Label>
+                <Input id="materials" placeholder="Couro, Camurça, Ferragem Metálica" />
               </div>
               <div>
-                <Label htmlFor="images">Product Images</Label>
+                <Label htmlFor="images">Imagens do Produto</Label>
                 <div className="border-2 border-dashed border-muted rounded-lg p-6 text-center">
                   <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    Drop files here or click to upload
+                    Arraste arquivos aqui ou clique para fazer upload
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    PNG, JPG up to 10MB
+                    PNG, JPG até 10MB
                   </p>
                 </div>
               </div>
               <div className="flex justify-end gap-3">
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
+                  Cancelar
                 </Button>
                 <Button className="bg-gradient-primary" onClick={() => setIsDialogOpen(false)}>
-                  Create Product
+                  Criar Produto
                 </Button>
               </div>
             </form>
@@ -235,7 +235,7 @@ const Products = () => {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Search by name or code..."
+            placeholder="Buscar por nome ou código..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -243,23 +243,23 @@ const Products = () => {
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder="Filtrar por status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="all">Todos os Status</SelectItem>
             <SelectItem value="briefing">Briefing</SelectItem>
             <SelectItem value="design">Design</SelectItem>
-            <SelectItem value="sample">Sample</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="finalized">Finalized</SelectItem>
+            <SelectItem value="sample">Amostra</SelectItem>
+            <SelectItem value="approved">Aprovado</SelectItem>
+            <SelectItem value="finalized">Finalizado</SelectItem>
           </SelectContent>
         </Select>
         <Select value={filterCollection} onValueChange={setFilterCollection}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by collection" />
+            <SelectValue placeholder="Filtrar por coleção" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Collections</SelectItem>
+            <SelectItem value="all">Todas as Coleções</SelectItem>
             {collections.map(collection => (
               <SelectItem key={collection} value={collection}>
                 {collection}
@@ -277,7 +277,12 @@ const Products = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <Badge className={getStatusColor(product.status)} variant="secondary">
-                    {product.status}
+                    {product.status === 'briefing' ? 'briefing' :
+                     product.status === 'design' ? 'design' :
+                     product.status === 'sample' ? 'amostra' :
+                     product.status === 'approved' ? 'aprovado' :
+                     product.status === 'finalized' ? 'finalizado' :
+                     product.status}
                   </Badge>
                   <CardTitle className="text-lg mb-1">{product.name}</CardTitle>
                   <CardDescription className="text-sm">
@@ -294,15 +299,15 @@ const Products = () => {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>
                       <Eye className="mr-2 h-4 w-4" />
-                      View Details
+                      Ver Detalhes
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Edit className="mr-2 h-4 w-4" />
-                      Edit
+                      Editar
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-destructive">
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      Excluir
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -331,13 +336,13 @@ const Products = () => {
                 </div>
                 <div className="flex items-center text-muted-foreground">
                   <Calendar className="mr-2 h-4 w-4" />
-                  Created {new Date(product.createdDate).toLocaleDateString()}
+                  Criado em {new Date(product.createdDate).toLocaleDateString('pt-BR')}
                 </div>
               </div>
 
               {/* Materials */}
               <div>
-                <p className="text-xs font-medium text-muted-foreground mb-2">Materials</p>
+                <p className="text-xs font-medium text-muted-foreground mb-2">Materiais</p>
                 <div className="flex flex-wrap gap-1">
                   {product.materials.slice(0, 3).map((material, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
@@ -355,7 +360,7 @@ const Products = () => {
               <div className="pt-2 border-t">
                 <Button variant="outline" className="w-full">
                   <FileText className="mr-2 h-4 w-4" />
-                  View Details
+                  Ver Detalhes
                 </Button>
               </div>
             </CardContent>
@@ -366,16 +371,16 @@ const Products = () => {
       {filteredProducts.length === 0 && (
         <div className="text-center py-12">
           <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">No products found</h3>
+          <h3 className="text-lg font-medium mb-2">Nenhum produto encontrado</h3>
           <p className="text-muted-foreground mb-4">
             {searchTerm || filterStatus !== "all" || filterCollection !== "all"
-              ? "Try adjusting your search or filters" 
-              : "Start by creating your first product model"
+              ? "Tente ajustar sua busca ou filtros" 
+              : "Comece criando seu primeiro modelo de produto"
             }
           </p>
           <Button className="bg-gradient-primary" onClick={() => setIsDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            New Product Model
+            Novo Modelo de Produto
           </Button>
         </div>
       )}

@@ -26,32 +26,32 @@ const Navigation = () => {
       exact: true
     },
     {
-      title: "Clients",
+      title: "Clientes",
       href: "/clients", 
       icon: Users
     },
     {
-      title: "Collections",
+      title: "Coleções",
       href: "/collections",
       icon: FolderOpen
     },
     {
-      title: "Product Models",
+      title: "Modelos de Produtos",
       href: "/products",
       icon: Package
     },
     {
-      title: "Materials",
+      title: "Materiais",
       href: "/materials",
       icon: Palette
     },
     {
-      title: "Workflow",
+      title: "Fluxo de Trabalho",
       href: "/workflow",
       icon: Kanban
     },
     {
-      title: "Reports",
+      title: "Relatórios",
       href: "/reports",
       icon: BarChart3
     }
@@ -88,7 +88,7 @@ const Navigation = () => {
               Fashion Factory
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Collection Management
+              Gestão de Coleções
             </p>
           </div>
 
@@ -121,10 +121,10 @@ const Navigation = () => {
           <div className="p-4 border-t border-border">
             <div className="bg-fashion-elegant-light p-3 rounded-lg">
               <p className="text-sm font-medium text-fashion-elegant">
-                Pro Tip
+                Dica Pro
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Use drag & drop in the workflow board to update task status quickly
+                Use arrastar e soltar no quadro de tarefas para atualizar status rapidamente
               </p>
             </div>
           </div>
