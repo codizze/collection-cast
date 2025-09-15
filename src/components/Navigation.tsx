@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, 
   Users, 
+  UserCheck,
   FolderOpen, 
   Package, 
   Palette, 
@@ -29,6 +30,11 @@ const Navigation = () => {
       title: "Clientes",
       href: "/clients", 
       icon: Users
+    },
+    {
+      title: "Modelistas",
+      href: "/stylists",
+      icon: UserCheck
     },
     {
       title: "Coleções",
