@@ -57,6 +57,32 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Fashion-specific colors
+        fashion: {
+          luxury: "hsl(var(--fashion-luxury))",
+          "luxury-foreground": "hsl(var(--fashion-luxury-foreground))",
+          elegant: "hsl(var(--fashion-elegant))",
+          "elegant-light": "hsl(var(--fashion-elegant-light))",
+          success: "hsl(var(--fashion-success))",
+          "success-light": "hsl(var(--fashion-success-light))",
+          warning: "hsl(var(--fashion-warning))",
+          "warning-light": "hsl(var(--fashion-warning-light))",
+        },
+      },
+      backgroundImage: {
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-accent": "var(--gradient-accent)",
+        "gradient-luxury": "var(--gradient-luxury)",
+      },
+      boxShadow: {
+        "elegant": "var(--shadow-elegant)",
+        "custom-sm": "var(--shadow-sm)",
+        "custom-md": "var(--shadow-md)",
+        "custom-lg": "var(--shadow-lg)",
+      },
+      transitionTimingFunction: {
+        "smooth": "var(--transition-smooth)",
+        "bounce-custom": "var(--transition-bounce)",
       },
       borderRadius: {
         lg: "var(--radius)",
