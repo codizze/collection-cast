@@ -1,230 +1,153 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Users, 
-  FolderOpen, 
-  Package, 
-  Clock, 
-  TrendingUp, 
-  AlertCircle,
-  Plus,
-  Calendar
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell
+} from 'recharts';
+import { 
+  Users, Package, FolderOpen, Palette, Clock, CheckCircle, 
+  TrendingUp, Calendar, User
 } from "lucide-react";
-import heroImage from "@/assets/hero-fashion-factory.jpg";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface DashboardStats {
+  totalClients: number;
+  totalCollections: number;
+  totalProducts: number;
+  totalMaterials: number;
+  totalTasks: number;
+  totalStylists: number;
+}
 
 const Dashboard = () => {
-  const stats = [
-    {
-      title: "Clientes Ativos",
-      value: "12",
-      change: "+2 neste mês",
-      icon: Users,
-      color: "fashion-elegant"
-    },
-    {
-      title: "Coleções em Andamento",
-      value: "8",
-      change: "3 vencem esta semana",
-      icon: FolderOpen,
-      color: "fashion-luxury"
-    },
-    {
-      title: "Modelos de Produtos",
-      value: "247",
-      change: "+18 esta semana",
-      icon: Package,
-      color: "fashion-success"
-    },
-    {
-      title: "Tarefas Pendentes",
-      value: "34",
-      change: "5 em atraso",
-      icon: Clock,
-      color: "fashion-warning"
-    }
-  ];
+  const [stats, setStats] = useState<DashboardStats>({
+    totalClients: 0,
+    totalCollections: 0,
+    totalProducts: 0,
+    totalMaterials: 0,
+    totalTasks: 0,
+    totalStylists: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const recentActivity = [
-    {
-      client: "Schutz",
-      collection: "Primavera 2024",
-      action: "Novo modelo adicionado",
-      time: "há 2 horas",
-      status: "design"
-    },
-    {
-      client: "Arezzo",
-      collection: "Coleção Verão", 
-      action: "Amostra aprovada",
-      time: "há 4 horas",
-      status: "approved"
-    },
-    {
-      client: "Luiza Barcelos",
-      collection: "Preview Outono",
-      action: "Materiais atualizados",
-      time: "há 1 dia",
-      status: "sample"
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [
+        clientsRes, collectionsRes, productsRes, materialsRes, tasksRes, stylistsRes
+      ] = await Promise.all([
+        supabase.from('clients').select('id', { count: 'exact' }),
+        supabase.from('collections').select('id', { count: 'exact' }),
+        supabase.from('products').select('id', { count: 'exact' }),
+        supabase.from('materials').select('id', { count: 'exact' }),
+        supabase.from('tasks').select('id', { count: 'exact' }),
+        supabase.from('stylists').select('id', { count: 'exact' })
+      ]);
+
+      setStats({
+        totalClients: clientsRes.count || 0,
+        totalCollections: collectionsRes.count || 0,
+        totalProducts: productsRes.count || 0,
+        totalMaterials: materialsRes.count || 0,
+        totalTasks: tasksRes.count || 0,
+        totalStylists: stylistsRes.count || 0
+      });
+    } catch (error) {
+      console.error('Erro ao buscar dados do dashboard:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os dados do dashboard.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-48">
+        <div className="text-lg">Carregando dashboard...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="relative h-80 bg-gradient-primary overflow-hidden">
-        <img 
-          src={heroImage} 
-          alt="Fashion Factory Workspace"
-          className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-20"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70" />
-        <div className="relative z-10 container mx-auto px-6 h-full flex items-center">
-          <div>
-            <h1 className="text-4xl md:text-6xl font-bold text-primary-foreground mb-4">
-              Fashion Factory
-            </h1>
-            <p className="text-xl text-primary-foreground/90 mb-6 max-w-2xl">
-              Gerencie suas coleções de marca própria com sofisticação e eficiência
-            </p>
-            <Button variant="secondary" size="lg" className="shadow-elegant">
-              <Plus className="mr-2 h-5 w-5" />
-              Criar Nova Coleção
-            </Button>
-          </div>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Visão geral do sistema de gerenciamento de coleções
+        </p>
       </div>
 
-      <div className="container mx-auto px-6 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <Card key={index} className="border-0 shadow-custom-md hover:shadow-elegant transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {stat.title}
-                  </CardTitle>
-                  <Icon className={`h-4 w-4 text-fashion-${stat.color}`} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold mb-1">{stat.value}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stat.change}
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Clientes</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalClients}</div>
+          </CardContent>
+        </Card>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Recent Activity */}
-          <Card className="lg:col-span-2 border-0 shadow-custom-md">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl">Atividade Recente</CardTitle>
-                  <CardDescription>Últimas atualizações das suas coleções</CardDescription>
-                </div>
-                <Button variant="outline" size="sm">
-                  Ver Todas
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center space-x-4">
-                      <div className="h-10 w-10 rounded-full bg-gradient-accent flex items-center justify-center">
-                        <span className="text-sm font-medium text-white">
-                          {activity.client.substring(0, 2)}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">
-                          {activity.client} • {activity.collection}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {activity.action}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <Badge 
-                        variant="secondary" 
-                        className={`mb-1 ${
-                          activity.status === 'approved' ? 'bg-fashion-success-light text-fashion-success' :
-                          activity.status === 'design' ? 'bg-fashion-elegant-light text-fashion-elegant' :
-                          'bg-fashion-warning-light text-fashion-warning'
-                        }`}
-                      >
-                        {activity.status}
-                      </Badge>
-                      <p className="text-xs text-muted-foreground">
-                        {activity.time}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Coleções</CardTitle>
+            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalCollections}</div>
+          </CardContent>
+        </Card>
 
-          {/* Quick Actions & Overview */}
-          <div className="space-y-6">
-            {/* Quick Actions */}
-            <Card className="border-0 shadow-custom-md">
-              <CardHeader>
-                <CardTitle className="text-lg">Ações Rápidas</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button className="w-full justify-start bg-gradient-primary hover:opacity-90" size="lg">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nova Coleção
-                </Button>
-                <Button variant="outline" className="w-full justify-start" size="lg">
-                  <Users className="mr-2 h-4 w-4" />
-                  Adicionar Cliente
-                </Button>
-                <Button variant="outline" className="w-full justify-start" size="lg">
-                  <Package className="mr-2 h-4 w-4" />
-                  Criar Modelo de Produto
-                </Button>
-                <Button variant="outline" className="w-full justify-start" size="lg">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Agendar Revisão
-                </Button>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Produtos</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalProducts}</div>
+          </CardContent>
+        </Card>
 
-            {/* Alerts */}
-            <Card className="border-0 shadow-custom-md border-l-4 border-l-fashion-warning">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <AlertCircle className="mr-2 h-5 w-5 text-fashion-warning" />
-                  Atenção Necessária
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="text-sm">
-                  <p className="font-medium">5 tarefas em atraso</p>
-                  <p className="text-muted-foreground">Coleção Primavera Schutz precisa de revisão</p>
-                </div>
-                <div className="text-sm">
-                  <p className="font-medium">Alerta de falta de material</p>
-                  <p className="text-muted-foreground">Couro croco com estoque baixo</p>
-                </div>
-                <Button variant="outline" size="sm" className="w-full">
-                  Ver Detalhes
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Materiais</CardTitle>
+            <Palette className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalMaterials}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Tarefas</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalTasks}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Modelistas</CardTitle>
+            <User className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalStylists}</div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

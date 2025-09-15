@@ -10,10 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { 
   Plus, Search, Package, Image as ImageIcon, FileText, Calendar, Tag, 
-  MoreVertical, Edit, Eye, Trash2, Upload
+  MoreVertical, Edit, Eye, Trash2, Upload, MessageSquare
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import CommentsSection from "@/components/CommentsSection";
 
 interface Client {
   id: string;
@@ -66,6 +67,8 @@ const Products = () => {
   const [filterCollection, setFilterCollection] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showComments, setShowComments] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -584,19 +587,26 @@ const Products = () => {
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEdit(product)}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleDelete(product.id)}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Excluir
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEdit(product)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        setSelectedProduct(product);
+                        setShowComments(true);
+                      }}>
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Ver Comentários
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleDelete(product.id)}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             </CardHeader>
@@ -663,6 +673,33 @@ const Products = () => {
               Criar Primeiro Produto
             </Button>
           )}
+        </div>
+      )}
+
+      {/* Comments Dialog */}
+      {showComments && selectedProduct && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">
+                Comentários - {selectedProduct.name}
+              </h2>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowComments(false);
+                  setSelectedProduct(null);
+                }}
+              >
+                Fechar
+              </Button>
+            </div>
+            <CommentsSection
+              entityType="product"
+              entityId={selectedProduct.id}
+              entityName={selectedProduct.name}
+            />
+          </div>
         </div>
       )}
     </div>

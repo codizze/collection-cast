@@ -11,10 +11,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { 
   Plus, Search, FolderOpen, Calendar, User, Package, Clock, CheckCircle, 
-  AlertTriangle, MoreVertical, Edit, Eye, Trash2
+  AlertTriangle, MoreVertical, Edit, Eye, Trash2, MessageSquare
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import CommentsSection from "@/components/CommentsSection";
 
 interface Client {
   id: string;
@@ -53,6 +54,8 @@ const Collections = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
+  const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
+  const [showComments, setShowComments] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -466,6 +469,13 @@ const Collections = () => {
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        setSelectedCollection(collection);
+                        setShowComments(true);
+                      }}>
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Ver Comentários
+                      </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => handleDelete(collection.id)}
                         className="text-destructive"
@@ -535,6 +545,33 @@ const Collections = () => {
               Criar Primeira Coleção
             </Button>
           )}
+        </div>
+      )}
+
+      {/* Comments Dialog */}
+      {showComments && selectedCollection && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">
+                Comentários - {selectedCollection.name}
+              </h2>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowComments(false);
+                  setSelectedCollection(null);
+                }}
+              >
+                Fechar
+              </Button>
+            </div>
+            <CommentsSection
+              entityType="collection"
+              entityId={selectedCollection.id}
+              entityName={selectedCollection.name}
+            />
+          </div>
         </div>
       )}
     </div>
