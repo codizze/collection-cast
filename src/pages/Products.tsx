@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,222 +7,511 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Plus, 
-  Search, 
-  Package, 
-  Image as ImageIcon, 
-  FileText,
-  Calendar,
-  Tag,
-  MoreVertical,
-  Edit,
-  Eye,
-  Trash2,
-  Upload
-} from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { 
+  Plus, Search, Package, Image as ImageIcon, FileText, Calendar, Tag, 
+  MoreVertical, Edit, Eye, Trash2, Upload
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Client {
+  id: string;
+  name: string;
+}
+
+interface Collection {
+  id: string;
+  name: string;
+  season: string;
+}
+
+interface Stylist {
+  id: string;
+  name: string;
+}
 
 interface Product {
   id: string;
   name: string;
   code: string;
-  collection: string;
-  client: string;
-  status: 'briefing' | 'design' | 'sample' | 'approved' | 'finalized';
-  description: string;
-  materials: string[];
-  createdDate: string;
-  imageUrl?: string;
+  collection_id: string;
+  client_id: string;
+  stylist_id?: string;
+  category?: string;
+  status: string;
+  description?: string;
+  image_url?: string;
+  size_range?: string;
+  target_price?: number;
+  production_cost?: number;
+  estimated_hours?: number;
+  priority: string;
+  created_at: string;
+  updated_at: string;
+  clients?: Client;
+  collections?: Collection;
+  stylists?: Stylist;
 }
 
 const Products = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [stylists, setStylists] = useState<Stylist[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterCollection, setFilterCollection] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const { toast } = useToast();
 
-  const mockProducts: Product[] = [
-    {
-      id: "1",
-      name: "Sandália Botânica",
-      code: "SCH-PV24-001",
-      collection: "Despertar da Primavera 2024",
-      client: "Schutz",
-      status: "approved",
-      description: "Sandália elegante com detalhes laser-cut inspirados em botânica e materiais sustentáveis",
-      materials: ["Camurça Reciclada", "Cortiça", "Bio Couro"],
-      createdDate: "2024-02-15",
-      imageUrl: "/api/placeholder/300/300"
-    },
-    {
-      id: "2", 
-      name: "Salto Bloco Urbano",
-      code: "ARZ-OI24-012",
-      collection: "Elegância Urbana",
-      client: "Arezzo",
-      status: "sample",
-      description: "Salto bloco contemporâneo com detalhes metálicos e padrões geométricos",
-      materials: ["Couro Premium", "Ferragem Metálica", "Solado de Borracha"],
-      createdDate: "2024-02-20",
-      imageUrl: "/api/placeholder/300/300"
-    },
-    {
-      id: "3",
-      name: "Espadrille Tropical",
-      code: "LB-VR24-008",
-      collection: "Vibes de Verão", 
-      client: "Luiza Barcelos",
-      status: "finalized",
-      description: "Espadrille colorida com estampa tropical e detalhes de juta trançada",
-      materials: ["Lona", "Juta", "Estampa Tropical"],
-      createdDate: "2024-01-10",
-      imageUrl: "/api/placeholder/300/300"
-    },
-    {
-      id: "4",
-      name: "Scarpin Clássico Reimaginado",
-      code: "SCH-AT24-005",
-      collection: "Clássico Renascido",
-      client: "Schutz",
-      status: "design",
-      description: "Interpretação moderna do scarpin clássico com tecnologia de conforto inovadora",
-      materials: ["Couro Napa", "Memory Foam", "Fibra de Carbono"],
-      createdDate: "2024-03-05",
-      imageUrl: "/api/placeholder/300/300"
-    },
-    {
-      id: "5",
-      name: "Bota Statement Metálica",
-      code: "FBX-HD24-003",
-      collection: "Sonhos Metálicos",
-      client: "Fashion Brand X", 
-      status: "briefing",
-      description: "Ankle boot ousada com acabamento metálico e aplicações de cristais",
-      materials: ["Couro Metálico", "Cristais", "Solado Plataforma"],
-      createdDate: "2024-02-28",
-      imageUrl: "/api/placeholder/300/300"
-    }
+  const [formData, setFormData] = useState({
+    name: "",
+    code: "",
+    collection_id: "",
+    client_id: "",
+    stylist_id: "",
+    category: "",
+    status: "rascunho",
+    description: "",
+    size_range: "",
+    target_price: "",
+    production_cost: "",
+    estimated_hours: "",
+    priority: "media"
+  });
+
+  const statusOptions = [
+    { value: "rascunho", label: "Rascunho" },
+    { value: "desenvolvimento", label: "Desenvolvimento" },
+    { value: "aprovado", label: "Aprovado" },
+    { value: "producao", label: "Produção" },
+    { value: "finalizado", label: "Finalizado" },
+    { value: "cancelado", label: "Cancelado" }
   ];
 
-  const collections = ["Despertar da Primavera 2024", "Elegância Urbana", "Vibes de Verão", "Clássico Renascido", "Sonhos Metálicos"];
+  const priorityOptions = [
+    { value: "baixa", label: "Baixa" },
+    { value: "media", label: "Média" },
+    { value: "alta", label: "Alta" },
+    { value: "urgente", label: "Urgente" }
+  ];
 
-  const filteredProducts = mockProducts.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.code.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || product.status === filterStatus;
-    const matchesCollection = filterCollection === "all" || product.collection === filterCollection;
-    return matchesSearch && matchesStatus && matchesCollection;
-  });
+  const categories = [
+    "Sandália", "Scarpin", "Sapatilha", "Tênis", "Bota", "Chinelo", 
+    "Espadrille", "Oxford", "Mocassim", "Salto Alto", "Salto Baixo", "Outros"
+  ];
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    filterProducts();
+  }, [products, searchTerm, filterStatus, filterCollection]);
+
+  const fetchData = async () => {
+    try {
+      const [productsRes, clientsRes, collectionsRes, stylistsRes] = await Promise.all([
+        supabase
+          .from('products')
+          .select(`
+            *,
+            clients(id, name),
+            collections(id, name, season),
+            stylists(id, name)
+          `)
+          .order('created_at', { ascending: false }),
+        supabase.from('clients').select('id, name').eq('active', true).order('name'),
+        supabase.from('collections').select('id, name, season').order('name'),
+        supabase.from('stylists').select('id, name').eq('active', true).order('name')
+      ]);
+
+      if (productsRes.error) throw productsRes.error;
+      if (clientsRes.error) throw clientsRes.error;
+      if (collectionsRes.error) throw collectionsRes.error;
+      if (stylistsRes.error) throw stylistsRes.error;
+
+      setProducts(productsRes.data || []);
+      setClients(clientsRes.data || []);
+      setCollections(collectionsRes.data || []);
+      setStylists(stylistsRes.data || []);
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterProducts = () => {
+    let filtered = products;
+
+    if (searchTerm) {
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.clients?.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (filterStatus !== "all") {
+      filtered = filtered.filter(product => product.status === filterStatus);
+    }
+
+    if (filterCollection !== "all") {
+      filtered = filtered.filter(product => product.collection_id === filterCollection);
+    }
+
+    setFilteredProducts(filtered);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const productData = {
+        name: formData.name,
+        code: formData.code,
+        collection_id: formData.collection_id,
+        client_id: formData.client_id,
+        stylist_id: formData.stylist_id || null,
+        category: formData.category || null,
+        status: formData.status,
+        description: formData.description || null,
+        size_range: formData.size_range || null,
+        target_price: formData.target_price ? parseFloat(formData.target_price) : null,
+        production_cost: formData.production_cost ? parseFloat(formData.production_cost) : null,
+        estimated_hours: formData.estimated_hours ? parseInt(formData.estimated_hours) : null,
+        priority: formData.priority,
+      };
+
+      if (editingProduct) {
+        const { error } = await supabase
+          .from('products')
+          .update(productData)
+          .eq('id', editingProduct.id);
+
+        if (error) throw error;
+        toast({ title: "Sucesso", description: "Produto atualizado com sucesso!" });
+      } else {
+        const { error } = await supabase
+          .from('products')
+          .insert([productData]);
+
+        if (error) throw error;
+        toast({ title: "Sucesso", description: "Produto criado com sucesso!" });
+      }
+
+      setIsDialogOpen(false);
+      setEditingProduct(null);
+      resetForm();
+      fetchData();
+    } catch (error) {
+      console.error('Erro ao salvar produto:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar o produto.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+    setFormData({
+      name: product.name,
+      code: product.code,
+      collection_id: product.collection_id,
+      client_id: product.client_id,
+      stylist_id: product.stylist_id || "",
+      category: product.category || "",
+      status: product.status,
+      description: product.description || "",
+      size_range: product.size_range || "",
+      target_price: product.target_price?.toString() || "",
+      production_cost: product.production_cost?.toString() || "",
+      estimated_hours: product.estimated_hours?.toString() || "",
+      priority: product.priority
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+
+    try {
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      if (error) throw error;
+      toast({ title: "Sucesso", description: "Produto excluído com sucesso!" });
+      fetchData();
+    } catch (error) {
+      console.error('Erro ao excluir produto:', error);
+      toast({ title: "Erro", description: "Não foi possível excluir o produto.", variant: "destructive" });
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      code: "",
+      collection_id: "",
+      client_id: "",
+      stylist_id: "",
+      category: "",
+      status: "rascunho",
+      description: "",
+      size_range: "",
+      target_price: "",
+      production_cost: "",
+      estimated_hours: "",
+      priority: "media"
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'finalized': return 'bg-fashion-success-light text-fashion-success';
-      case 'approved': return 'bg-fashion-elegant-light text-fashion-elegant';
-      case 'sample': return 'bg-fashion-warning-light text-fashion-warning';
-      case 'design': return 'bg-accent text-accent-foreground';
-      case 'briefing': return 'bg-muted text-muted-foreground';
-      default: return 'bg-muted text-muted-foreground';
+      case 'rascunho': return "bg-gray-500";
+      case 'desenvolvimento': return "bg-blue-500";
+      case 'aprovado': return "bg-green-500";
+      case 'producao': return "bg-orange-500";
+      case 'finalizado': return "bg-purple-500";
+      case 'cancelado': return "bg-red-500";
+      default: return "bg-gray-500";
     }
   };
 
-  const statusOrder = ['briefing', 'design', 'sample', 'approved', 'finalized'];
-  
-  const getStatusProgress = (status: string) => {
-    return ((statusOrder.indexOf(status) + 1) / statusOrder.length) * 100;
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'baixa': return "bg-green-100 text-green-800";
+      case 'media': return "bg-yellow-100 text-yellow-800";
+      case 'alta': return "bg-orange-100 text-orange-800";
+      case 'urgente': return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-48">
+        <div className="text-lg">Carregando produtos...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6">
+      <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold">Modelos de Produtos</h1>
-          <p className="text-muted-foreground">Gerencie o desenvolvimento individual de produtos do conceito à finalização</p>
+          <p className="text-muted-foreground">
+            Crie e gerencie os modelos da sua produção
+          </p>
         </div>
-
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-primary hover:opacity-90">
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Modelo de Produto
+            <Button onClick={() => {
+              setEditingProduct(null);
+              resetForm();
+            }}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Produto
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Criar Novo Modelo de Produto</DialogTitle>
+              <DialogTitle>
+                {editingProduct ? "Editar Produto" : "Novo Produto"}
+              </DialogTitle>
             </DialogHeader>
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="productName">Nome do Produto</Label>
-                  <Input id="productName" placeholder="Sandália de Verão" />
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome do Produto *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
                 </div>
-                <div>
-                  <Label htmlFor="productCode">Código do Produto</Label>
-                  <Input id="productCode" placeholder="SCH-VR24-001" />
+                <div className="space-y-2">
+                  <Label htmlFor="code">Código *</Label>
+                  <Input
+                    id="code"
+                    value={formData.code}
+                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                    placeholder="Ex: SCH-PV24-001"
+                    required
+                  />
                 </div>
               </div>
+
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="client">Cliente</Label>
-                  <Select>
+                <div className="space-y-2">
+                  <Label htmlFor="client_id">Cliente *</Label>
+                  <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecionar cliente" />
+                      <SelectValue placeholder="Selecione um cliente" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="schutz">Schutz</SelectItem>
-                      <SelectItem value="arezzo">Arezzo</SelectItem>
-                      <SelectItem value="luiza">Luiza Barcelos</SelectItem>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label htmlFor="collection">Coleção</Label>
-                  <Select>
+                <div className="space-y-2">
+                  <Label htmlFor="collection_id">Coleção *</Label>
+                  <Select value={formData.collection_id} onValueChange={(value) => setFormData({ ...formData, collection_id: value })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecionar coleção" />
+                      <SelectValue placeholder="Selecione uma coleção" />
                     </SelectTrigger>
                     <SelectContent>
-                      {collections.map(collection => (
-                        <SelectItem key={collection} value={collection.toLowerCase().replace(/\s+/g, '-')}>
-                          {collection}
+                      {collections.map((collection) => (
+                        <SelectItem key={collection.id} value={collection.id}>
+                          {collection.name} - {collection.season}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              <div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="stylist_id">Modelista</Label>
+                  <Select value={formData.stylist_id} onValueChange={(value) => setFormData({ ...formData, stylist_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um modelista" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum</SelectItem>
+                      {stylists.map((stylist) => (
+                        <SelectItem key={stylist.id} value={stylist.id}>
+                          {stylist.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="category">Categoria</Label>
+                  <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Prioridade</Label>
+                  <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {priorityOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="size_range">Numeração</Label>
+                  <Input
+                    id="size_range"
+                    value={formData.size_range}
+                    onChange={(e) => setFormData({ ...formData, size_range: e.target.value })}
+                    placeholder="Ex: 35-42, P-M-G"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="target_price">Preço Alvo (R$)</Label>
+                  <Input
+                    id="target_price"
+                    type="number"
+                    step="0.01"
+                    value={formData.target_price}
+                    onChange={(e) => setFormData({ ...formData, target_price: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="production_cost">Custo Produção (R$)</Label>
+                  <Input
+                    id="production_cost"
+                    type="number"
+                    step="0.01"
+                    value={formData.production_cost}
+                    onChange={(e) => setFormData({ ...formData, production_cost: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="estimated_hours">Horas Estimadas</Label>
+                  <Input
+                    id="estimated_hours"
+                    type="number"
+                    value={formData.estimated_hours}
+                    onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="description">Descrição</Label>
-                <Textarea 
-                  id="description" 
-                  placeholder="Descreva o conceito do produto, mercado-alvo e características principais..."
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
                 />
               </div>
-              <div>
-                <Label htmlFor="materials">Materiais (separados por vírgula)</Label>
-                <Input id="materials" placeholder="Couro, Camurça, Ferragem Metálica" />
-              </div>
-              <div>
-                <Label htmlFor="images">Imagens do Produto</Label>
-                <div className="border-2 border-dashed border-muted rounded-lg p-6 text-center">
-                  <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    Arraste arquivos aqui ou clique para fazer upload
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    PNG, JPG até 10MB
-                  </p>
-                </div>
-              </div>
-              <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button className="bg-gradient-primary" onClick={() => setIsDialogOpen(false)}>
-                  Criar Produto
+                <Button type="submit">
+                  {editingProduct ? "Atualizar" : "Criar"} Produto
                 </Button>
               </div>
             </form>
@@ -230,12 +519,11 @@ const Products = () => {
         </Dialog>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Buscar por nome ou código..."
+      <div className="flex gap-4 items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Buscar produtos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -243,53 +531,53 @@ const Products = () => {
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por status" />
+            <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os Status</SelectItem>
-            <SelectItem value="briefing">Briefing</SelectItem>
-            <SelectItem value="design">Design</SelectItem>
-            <SelectItem value="sample">Amostra</SelectItem>
-            <SelectItem value="approved">Aprovado</SelectItem>
-            <SelectItem value="finalized">Finalizado</SelectItem>
+            <SelectItem value="all">Todos os status</SelectItem>
+            {statusOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={filterCollection} onValueChange={setFilterCollection}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por coleção" />
+            <SelectValue placeholder="Coleção" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas as Coleções</SelectItem>
-            {collections.map(collection => (
-              <SelectItem key={collection} value={collection}>
-                {collection}
+            <SelectItem value="all">Todas as coleções</SelectItem>
+            {collections.map((collection) => (
+              <SelectItem key={collection.id} value={collection.id}>
+                {collection.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProducts.map((product) => (
-          <Card key={product.id} className="border-0 shadow-custom-md hover:shadow-elegant transition-all duration-300 hover:-translate-y-1">
+          <Card key={product.id} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <Badge className={getStatusColor(product.status)} variant="secondary">
-                    {product.status === 'briefing' ? 'briefing' :
-                     product.status === 'design' ? 'design' :
-                     product.status === 'sample' ? 'amostra' :
-                     product.status === 'approved' ? 'aprovado' :
-                     product.status === 'finalized' ? 'finalizado' :
-                     product.status}
-                  </Badge>
-                  <CardTitle className="text-lg mb-1">{product.name}</CardTitle>
-                  <CardDescription className="text-sm">
-                    {product.code}
-                  </CardDescription>
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                    <Package className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">{product.name}</CardTitle>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge className={getStatusColor(product.status)}>
+                        {statusOptions.find(s => s.value === product.status)?.label}
+                      </Badge>
+                      <Badge variant="outline" className={getPriorityColor(product.priority)}>
+                        {priorityOptions.find(p => p.value === product.priority)?.label}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
-                
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
@@ -297,72 +585,64 @@ const Products = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <Eye className="mr-2 h-4 w-4" />
-                      Ver Detalhes
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Edit className="mr-2 h-4 w-4" />
+                    <DropdownMenuItem onClick={() => handleEdit(product)}>
+                      <Edit className="h-4 w-4 mr-2" />
                       Editar
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
-                      <Trash2 className="mr-2 h-4 w-4" />
+                    <DropdownMenuItem 
+                      onClick={() => handleDelete(product.id)}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
                       Excluir
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             </CardHeader>
-            
-            <CardContent className="space-y-4">
-              {/* Product Image Placeholder */}
-              <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
-                <ImageIcon className="h-12 w-12 text-muted-foreground" />
+            <CardContent className="space-y-3">
+              <div className="text-sm font-mono bg-muted px-2 py-1 rounded">
+                {product.code}
+              </div>
+              
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">
+                  🏢 {product.clients?.name}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  📁 {product.collections?.name}
+                </div>
+                {product.stylists && (
+                  <div className="text-sm text-muted-foreground">
+                    👤 {product.stylists.name}
+                  </div>
+                )}
               </div>
 
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {product.description}
-              </p>
+              {product.category && (
+                <Badge variant="outline" className="text-xs">
+                  {product.category}
+                </Badge>
+              )}
 
-              {/* Collection & Client */}
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center text-muted-foreground">
-                  <Package className="mr-2 h-4 w-4" />
-                  {product.collection}
-                </div>
-                <div className="flex items-center text-muted-foreground">
-                  <Tag className="mr-2 h-4 w-4" />
-                  {product.client}
-                </div>
-                <div className="flex items-center text-muted-foreground">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Criado em {new Date(product.createdDate).toLocaleDateString('pt-BR')}
-                </div>
+              <div className="flex justify-between text-sm">
+                {product.target_price && (
+                  <span className="text-green-600 font-medium">
+                    💰 R$ {product.target_price.toFixed(2)}
+                  </span>
+                )}
+                {product.estimated_hours && (
+                  <span className="text-muted-foreground">
+                    ⏱️ {product.estimated_hours}h
+                  </span>
+                )}
               </div>
 
-              {/* Materials */}
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-2">Materiais</p>
-                <div className="flex flex-wrap gap-1">
-                  {product.materials.slice(0, 3).map((material, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {material}
-                    </Badge>
-                  ))}
-                  {product.materials.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{product.materials.length - 3}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              <div className="pt-2 border-t">
-                <Button variant="outline" className="w-full">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Ver Detalhes
-                </Button>
-              </div>
+              {product.description && (
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {product.description}
+                </p>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -371,17 +651,18 @@ const Products = () => {
       {filteredProducts.length === 0 && (
         <div className="text-center py-12">
           <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">Nenhum produto encontrado</h3>
+          <h3 className="text-lg font-semibold mb-2">Nenhum produto encontrado</h3>
           <p className="text-muted-foreground mb-4">
             {searchTerm || filterStatus !== "all" || filterCollection !== "all"
-              ? "Tente ajustar sua busca ou filtros" 
-              : "Comece criando seu primeiro modelo de produto"
-            }
+              ? "Tente ajustar os filtros de busca."
+              : "Comece criando seu primeiro produto."}
           </p>
-          <Button className="bg-gradient-primary" onClick={() => setIsDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Modelo de Produto
-          </Button>
+          {!searchTerm && filterStatus === "all" && filterCollection === "all" && (
+            <Button onClick={() => setIsDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Criar Primeiro Produto
+            </Button>
+          )}
         </div>
       )}
     </div>

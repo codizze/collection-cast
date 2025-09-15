@@ -173,7 +173,7 @@ const Materials = () => {
       console.error('Erro ao salvar material:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível salvar o material.",
+        description: `Não foi possível salvar o material: ${error?.message || 'Erro desconhecido'}`,
         variant: "destructive",
       });
     }
@@ -198,6 +198,24 @@ const Materials = () => {
     if (!confirm('Tem certeza que deseja excluir este material?')) return;
 
     try {
+      // First check if material is being used in any products
+      const { data: productMaterials, error: checkError } = await supabase
+        .from('product_materials')
+        .select('id')
+        .eq('material_id', id)
+        .limit(1);
+
+      if (checkError) throw checkError;
+
+      if (productMaterials && productMaterials.length > 0) {
+        toast({
+          title: "Erro",
+          description: "Este material não pode ser excluído pois está sendo usado em produtos.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('materials')
         .delete()
@@ -215,7 +233,7 @@ const Materials = () => {
       console.error('Erro ao excluir material:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível excluir o material.",
+        description: `Não foi possível excluir o material: ${error?.message || 'Erro desconhecido'}`,
         variant: "destructive",
       });
     }
@@ -316,7 +334,7 @@ const Materials = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="category">Categoria *</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                  <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione uma categoria" />
                     </SelectTrigger>
