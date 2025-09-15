@@ -58,7 +58,7 @@ const Collections = () => {
   const [formData, setFormData] = useState({
     name: "",
     client_id: "",
-    stylist_id: "",
+    stylist_id: "none",
     season: "",
     start_date: "",
     end_date: "",
@@ -142,7 +142,7 @@ const Collections = () => {
       const collectionData = {
         name: formData.name,
         client_id: formData.client_id,
-        stylist_id: formData.stylist_id || null,
+        stylist_id: formData.stylist_id === "none" ? null : formData.stylist_id,
         season: formData.season,
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
@@ -187,7 +187,7 @@ const Collections = () => {
     setFormData({
       name: collection.name,
       client_id: collection.client_id,
-      stylist_id: collection.stylist_id || "",
+      stylist_id: collection.stylist_id || "none",
       season: collection.season,
       start_date: collection.start_date || "",
       end_date: collection.end_date || "",
@@ -216,7 +216,7 @@ const Collections = () => {
     setFormData({
       name: "",
       client_id: "",
-      stylist_id: "",
+      stylist_id: "none",
       season: "",
       start_date: "",
       end_date: "",
@@ -327,7 +327,7 @@ const Collections = () => {
                       <SelectValue placeholder="Selecione um modelista" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {stylists.map((stylist) => (
                         <SelectItem key={stylist.id} value={stylist.id}>
                           {stylist.name}

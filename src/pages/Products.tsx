@@ -73,7 +73,7 @@ const Products = () => {
     code: "",
     collection_id: "",
     client_id: "",
-    stylist_id: "",
+    stylist_id: "none",
     category: "",
     status: "rascunho",
     description: "",
@@ -183,7 +183,7 @@ const Products = () => {
         code: formData.code,
         collection_id: formData.collection_id,
         client_id: formData.client_id,
-        stylist_id: formData.stylist_id || null,
+        stylist_id: formData.stylist_id === "none" ? null : formData.stylist_id,
         category: formData.category || null,
         status: formData.status,
         description: formData.description || null,
@@ -232,7 +232,7 @@ const Products = () => {
       code: product.code,
       collection_id: product.collection_id,
       client_id: product.client_id,
-      stylist_id: product.stylist_id || "",
+      stylist_id: product.stylist_id || "none",
       category: product.category || "",
       status: product.status,
       description: product.description || "",
@@ -265,7 +265,7 @@ const Products = () => {
       code: "",
       collection_id: "",
       client_id: "",
-      stylist_id: "",
+      stylist_id: "none",
       category: "",
       status: "rascunho",
       description: "",
@@ -396,7 +396,7 @@ const Products = () => {
                       <SelectValue placeholder="Selecione um modelista" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {stylists.map((stylist) => (
                         <SelectItem key={stylist.id} value={stylist.id}>
                           {stylist.name}
