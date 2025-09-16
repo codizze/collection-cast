@@ -11,6 +11,8 @@ import { ClientAnalyticsCard } from "@/components/dashboard/ClientAnalyticsCard"
 import { ProductionFunnelChart } from "@/components/dashboard/ProductionFunnelChart";
 import { CollectionStatusChart } from "@/components/dashboard/CollectionStatusChart";
 import { RecentActivityWidget } from "@/components/dashboard/RecentActivityWidget";
+import ScheduleTimelineWidget from "@/components/dashboard/ScheduleTimelineWidget";
+import { useProductionStages } from "@/hooks/useProductionStages";
 import { Button } from "@/components/ui/button";
 
 interface DashboardStats {
@@ -74,6 +76,14 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const { toast } = useToast();
+
+  const { 
+    products, 
+    loading: productionLoading, 
+    isOverdue,
+    recalculateAllSchedules,
+    scheduleLoading
+  } = useProductionStages();
 
   useEffect(() => {
     fetchAllDashboardData();
@@ -330,6 +340,27 @@ const Dashboard = () => {
       <div className="grid gap-6 md:grid-cols-2">
         <CollectionStatusChart data={collectionStatus} loading={analyticsLoading} />
         <RecentActivityWidget activities={recentActivity} loading={analyticsLoading} />
+      </div>
+
+      {/* Cronograma Timeline */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4 text-primary">Cronograma de Produção</h2>
+        <ScheduleTimelineWidget 
+          products={products.map(p => ({
+            id: p.id,
+            name: p.name,
+            code: p.code,
+            collection: { name: p.collection_name || 'Sem coleção' },
+            client: { name: p.client_name || 'Sem cliente' },
+            currentStage: p.current_stage ? {
+              stage_name: p.current_stage.stage_name,
+              expected_date: p.current_stage.expected_date,
+              status: p.current_stage.status
+            } : undefined
+          }))}
+          onRecalculateAll={recalculateAllSchedules}
+          loading={scheduleLoading}
+        />
       </div>
 
       {/* Production Funnel */}

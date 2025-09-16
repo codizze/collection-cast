@@ -40,6 +40,7 @@ interface ProductWithStage {
 export function useProductionStages() {
   const [products, setProducts] = useState<ProductWithStage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
   const { toast } = useToast();
 
   const STAGE_ORDER = [
@@ -94,12 +95,12 @@ export function useProductionStages() {
         console.log(`Creating stages for ${productsWithoutStages.length} products`);
         for (const product of productsWithoutStages) {
           const stagesToInsert = [
-            { product_id: product.id, stage_name: 'Briefing Recebido', stage_order: 1, status: 'pendente' },
-            { product_id: product.id, stage_name: 'Modelagem Técnica', stage_order: 2, status: 'pendente' },
-            { product_id: product.id, stage_name: 'Piloto Finalizado', stage_order: 3, status: 'pendente' },
-            { product_id: product.id, stage_name: 'Envio para Aprovação', stage_order: 4, status: 'pendente' },
-            { product_id: product.id, stage_name: 'Aprovado', stage_order: 5, status: 'pendente' },
-            { product_id: product.id, stage_name: 'Mostruário e Entregue', stage_order: 6, status: 'pendente' }
+            { product_id: product.id, stage_name: 'Briefing Recebido', stage_order: 1, status: 'pendente', duration_days: 2 },
+            { product_id: product.id, stage_name: 'Modelagem Técnica', stage_order: 2, status: 'pendente', duration_days: 5 },
+            { product_id: product.id, stage_name: 'Piloto Finalizado', stage_order: 3, status: 'pendente', duration_days: 7 },
+            { product_id: product.id, stage_name: 'Envio para Aprovação', stage_order: 4, status: 'pendente', duration_days: 3 },
+            { product_id: product.id, stage_name: 'Aprovado', stage_order: 5, status: 'pendente', duration_days: 2 },
+            { product_id: product.id, stage_name: 'Mostruário e Entregue', stage_order: 6, status: 'pendente', duration_days: 1 }
           ];
 
           const { error: insertError } = await supabase
@@ -108,6 +109,9 @@ export function useProductionStages() {
 
           if (insertError) {
             console.error('Error creating stages for product:', product.id, insertError);
+          } else {
+            // Recalcular cronograma após criar as etapas
+            await recalculateProductSchedule(product.id);
           }
         }
 
@@ -355,13 +359,73 @@ export function useProductionStages() {
     );
   };
 
-  const isOverdue = (product: ProductWithStage) => {
+  const isOverdue = (product: ProductWithStage): boolean => {
     if (!product.current_stage?.expected_date) return false;
+    
     const expectedDate = new Date(product.current_stage.expected_date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     expectedDate.setHours(0, 0, 0, 0);
-    return expectedDate < today && product.current_stage?.status !== 'concluida';
+    
+    return expectedDate < today && product.current_stage.status !== 'concluida';
+  };
+
+  const recalculateProductSchedule = async (productId: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('recalculate-schedule', {
+        body: { productId }
+      });
+      
+      if (error) {
+        console.error('Error recalculating schedule:', error);
+      }
+    } catch (error) {
+      console.error('Error calling recalculate-schedule function:', error);
+    }
+  };
+
+  const recalculateCollectionSchedule = async (collectionId: string) => {
+    setScheduleLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('recalculate-schedule', {
+        body: { collectionId }
+      });
+      
+      if (error) {
+        console.error('Error recalculating collection schedule:', error);
+        return false;
+      }
+      
+      await fetchProductsWithStages(); // Refresh data
+      return true;
+    } catch (error) {
+      console.error('Error calling recalculate-schedule function:', error);
+      return false;
+    } finally {
+      setScheduleLoading(false);
+    }
+  };
+
+  const recalculateAllSchedules = async () => {
+    setScheduleLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('recalculate-schedule', {
+        body: { recalculateAll: true }
+      });
+      
+      if (error) {
+        console.error('Error recalculating all schedules:', error);
+        return false;
+      }
+      
+      await fetchProductsWithStages(); // Refresh data
+      return true;
+    } catch (error) {
+      console.error('Error calling recalculate-schedule function:', error);
+      return false;
+    } finally {
+      setScheduleLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -371,6 +435,7 @@ export function useProductionStages() {
   return {
     products,
     loading,
+    scheduleLoading,
     STAGE_ORDER,
     updateStageStatus,
     advanceToNextStage,
@@ -378,6 +443,10 @@ export function useProductionStages() {
     deleteFile,
     getProductsByStage,
     isOverdue,
-    refetch: fetchProductsWithStages
+    fetchProductsWithStages,
+    refetch: fetchProductsWithStages,
+    recalculateProductSchedule,
+    recalculateCollectionSchedule,
+    recalculateAllSchedules,
   };
 }
