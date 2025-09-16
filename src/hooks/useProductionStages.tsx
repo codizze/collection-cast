@@ -85,6 +85,43 @@ export function useProductionStages() {
 
       if (filesError) throw filesError;
 
+      // Check for products without stages and create them
+      const productsWithoutStages = productsData.filter(product => 
+        !stagesData.some(stage => stage.product_id === product.id)
+      );
+
+      if (productsWithoutStages.length > 0) {
+        console.log(`Creating stages for ${productsWithoutStages.length} products`);
+        for (const product of productsWithoutStages) {
+          const stagesToInsert = [
+            { product_id: product.id, stage_name: 'Briefing Recebido', stage_order: 1, status: 'pendente' },
+            { product_id: product.id, stage_name: 'Modelagem Técnica', stage_order: 2, status: 'pendente' },
+            { product_id: product.id, stage_name: 'Piloto Finalizado', stage_order: 3, status: 'pendente' },
+            { product_id: product.id, stage_name: 'Envio para Aprovação', stage_order: 4, status: 'pendente' },
+            { product_id: product.id, stage_name: 'Aprovado', stage_order: 5, status: 'pendente' },
+            { product_id: product.id, stage_name: 'Mostruário e Entregue', stage_order: 6, status: 'pendente' }
+          ];
+
+          const { error: insertError } = await supabase
+            .from('production_stages')
+            .insert(stagesToInsert);
+
+          if (insertError) {
+            console.error('Error creating stages for product:', product.id, insertError);
+          }
+        }
+
+        // Refetch stages after creating missing ones
+        const { data: updatedStagesData, error: updatedStagesError } = await supabase
+          .from('production_stages')
+          .select('*')
+          .order('stage_order');
+
+        if (!updatedStagesError) {
+          stagesData.push(...(updatedStagesData || []));
+        }
+      }
+
       // Combine data
       const productsWithStages: ProductWithStage[] = productsData.map(product => {
         const productStages = stagesData.filter(stage => stage.product_id === product.id);
@@ -100,6 +137,18 @@ export function useProductionStages() {
           currentStage = productStages[productStages.length - 1];
         }
 
+        // Create default stage if no stages exist for this product
+        const defaultStage = {
+          id: 'default',
+          product_id: product.id,
+          stage_name: 'Briefing Recebido',
+          stage_order: 1,
+          expected_date: undefined,
+          actual_date: undefined,
+          status: 'pendente',
+          notes: undefined
+        };
+
         return {
           id: product.id,
           name: product.name,
@@ -110,7 +159,7 @@ export function useProductionStages() {
           priority: product.priority,
           status: product.status,
           created_at: product.created_at,
-          current_stage: currentStage || productStages[0],
+          current_stage: currentStage || defaultStage,
           files: productFiles || []
         };
       });
@@ -301,16 +350,18 @@ export function useProductionStages() {
   };
 
   const getProductsByStage = (stageName: string) => {
-    return products.filter(product => product.current_stage.stage_name === stageName);
+    return products.filter(product => 
+      product.current_stage?.stage_name === stageName
+    );
   };
 
   const isOverdue = (product: ProductWithStage) => {
-    if (!product.current_stage.expected_date) return false;
+    if (!product.current_stage?.expected_date) return false;
     const expectedDate = new Date(product.current_stage.expected_date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     expectedDate.setHours(0, 0, 0, 0);
-    return expectedDate < today && product.current_stage.status !== 'concluida';
+    return expectedDate < today && product.current_stage?.status !== 'concluida';
   };
 
   useEffect(() => {

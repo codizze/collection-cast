@@ -160,9 +160,9 @@ export function TVMode({
 }
 
 function OverviewView({ products, stages, getProductsByStage, isOverdue, formatDate, getStatusColor }: any) {
-  const overdueCount = products.filter(isOverdue).length;
-  const inProgressCount = products.filter((p: any) => p.current_stage.status === 'em_andamento').length;
-  const completedCount = products.filter((p: any) => p.current_stage.status === 'concluida').length;
+  const overdueCount = products.filter((p: any) => p.current_stage && isOverdue(p)).length;
+  const inProgressCount = products.filter((p: any) => p.current_stage?.status === 'em_andamento').length;
+  const completedCount = products.filter((p: any) => p.current_stage?.status === 'concluida').length;
 
   return (
     <div className="space-y-8">
@@ -307,7 +307,7 @@ function OverdueView({ products, isOverdue, formatDate }: any) {
 }
 
 function InProgressView({ products, formatDate }: any) {
-  const inProgressProducts = products.filter((p: any) => p.current_stage.status === 'em_andamento');
+  const inProgressProducts = products.filter((p: any) => p.current_stage?.status === 'em_andamento');
 
   return (
     <div className="space-y-6">

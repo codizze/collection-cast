@@ -60,6 +60,11 @@ export function ProductWorkflow() {
   };
 
   const filteredProducts = products.filter(product => {
+    // Safety check for product structure
+    if (!product || !product.current_stage) {
+      return false;
+    }
+
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.code.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -70,9 +75,9 @@ export function ProductWorkflow() {
     if (filterStatus === 'overdue') {
       matchesStatus = isOverdue(product);
     } else if (filterStatus === 'on_time') {
-      matchesStatus = !isOverdue(product) && product.current_stage.status !== 'concluida';
+      matchesStatus = !isOverdue(product) && product.current_stage?.status !== 'concluida';
     } else if (filterStatus === 'completed') {
-      matchesStatus = product.current_stage.status === 'concluida';
+      matchesStatus = product.current_stage?.status === 'concluida';
     }
 
     return matchesSearch && matchesCollection && matchesClient && matchesStatus;
@@ -225,19 +230,19 @@ export function ProductWorkflow() {
         <div className="bg-card border rounded-lg p-4">
           <h3 className="text-sm font-medium text-muted-foreground">Em Andamento</h3>
           <p className="text-2xl font-bold text-blue-600">
-            {filteredProducts.filter(p => p.current_stage.status === 'em_andamento').length}
+            {filteredProducts.filter(p => p.current_stage?.status === 'em_andamento').length}
           </p>
         </div>
         <div className="bg-card border rounded-lg p-4">
           <h3 className="text-sm font-medium text-muted-foreground">Atrasados</h3>
           <p className="text-2xl font-bold text-red-600">
-            {filteredProducts.filter(p => isOverdue(p)).length}
+            {filteredProducts.filter(p => p.current_stage && isOverdue(p)).length}
           </p>
         </div>
         <div className="bg-card border rounded-lg p-4">
           <h3 className="text-sm font-medium text-muted-foreground">Concluídos</h3>
           <p className="text-2xl font-bold text-green-600">
-            {filteredProducts.filter(p => p.current_stage.status === 'concluida').length}
+            {filteredProducts.filter(p => p.current_stage?.status === 'concluida').length}
           </p>
         </div>
       </div>
@@ -247,7 +252,7 @@ export function ProductWorkflow() {
         <div className="flex gap-6 overflow-x-auto pb-4">
           {STAGE_ORDER.map((stageName, index) => {
             const stageProducts = filteredProducts.filter(product => 
-              product.current_stage.stage_name === stageName
+              product.current_stage?.stage_name === stageName
             );
 
             return (

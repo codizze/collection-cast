@@ -34,7 +34,7 @@ interface ProductCardProps {
     expected_date?: string;
     actual_date?: string;
     status: string;
-  };
+  } | null;
   isOverdue: boolean;
   onStageUpdate: (productId: string, newStage: string) => void;
   onFileUpload: (productId: string, file: File) => Promise<void>;
@@ -65,6 +65,10 @@ export function ProductCard({
         return 'bg-gray-500/20 text-gray-700 border-gray-200';
     }
   };
+
+  // Handle case where currentStage might be null
+  const stageStatus = currentStage?.status || 'pendente';
+  const stageName = currentStage?.stage_name || 'Sem etapa definida';
 
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
@@ -151,11 +155,11 @@ export function ProductCard({
 
       {/* Status and Priority */}
       <div className="flex gap-2 mb-3">
-        <Badge className={`text-xs ${getStatusColor(currentStage.status)}`}>
-          {currentStage.status === 'concluida' && <CheckCircle className="w-3 h-3 mr-1" />}
-          {currentStage.status === 'em_andamento' && <Clock className="w-3 h-3 mr-1" />}
-          {currentStage.status === 'atrasada' && <AlertTriangle className="w-3 h-3 mr-1" />}
-          {currentStage.stage_name}
+        <Badge className={`text-xs ${getStatusColor(stageStatus)}`}>
+          {stageStatus === 'concluida' && <CheckCircle className="w-3 h-3 mr-1" />}
+          {stageStatus === 'em_andamento' && <Clock className="w-3 h-3 mr-1" />}
+          {stageStatus === 'atrasada' && <AlertTriangle className="w-3 h-3 mr-1" />}
+          {stageName}
         </Badge>
         
         {product.priority && (
@@ -166,7 +170,7 @@ export function ProductCard({
       </div>
 
       {/* Dates */}
-      {currentStage.expected_date && (
+      {currentStage?.expected_date && (
         <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
           <Calendar className="w-3 h-3" />
           <span>Previsto: {formatDate(currentStage.expected_date)}</span>
@@ -204,13 +208,13 @@ export function ProductCard({
             <div className="space-y-2">
               <h4 className="font-semibold">Etapa Atual</h4>
               <div className="flex gap-2">
-                <Badge className={getStatusColor(currentStage.status)}>
-                  {currentStage.stage_name}
+                <Badge className={getStatusColor(stageStatus)}>
+                  {stageName}
                 </Badge>
               </div>
               <div className="text-sm space-y-1">
-                <p>Data prevista: {formatDate(currentStage.expected_date)}</p>
-                {currentStage.actual_date && (
+                <p>Data prevista: {formatDate(currentStage?.expected_date)}</p>
+                {currentStage?.actual_date && (
                   <p>Data realizada: {formatDate(currentStage.actual_date)}</p>
                 )}
               </div>
