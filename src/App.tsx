@@ -11,6 +11,7 @@ import Products from "./pages/Products";
 import Stylists from "./pages/Stylists";
 import Materials from "./pages/Materials";
 import Workflow from "./pages/Workflow";
+import ProductWorkflow from "./pages/ProductWorkflow";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/stylists" element={<Stylists />} />
             <Route path="/materials" element={<Materials />} />
             <Route path="/workflow" element={<Workflow />} />
+            <Route path="/production-workflow" element={<ProductWorkflow />} />
             <Route path="/reports" element={<div className="p-6"><h1 className="text-3xl font-bold">Relatórios</h1><p className="text-muted-foreground">Dashboard de analytics em breve...</p></div>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

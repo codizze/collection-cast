@@ -52,8 +52,8 @@ const Navigation = () => {
       icon: Palette
     },
     {
-      title: "Fluxo de Trabalho",
-      href: "/workflow",
+      title: "Produção",
+      href: "/production-workflow",
       icon: Kanban
     },
     {
