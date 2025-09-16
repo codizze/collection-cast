@@ -72,6 +72,7 @@ export type Database = {
           start_date: string | null
           status: string
           stylist_id: string | null
+          total_deadline: string | null
           updated_at: string
         }
         Insert: {
@@ -86,6 +87,7 @@ export type Database = {
           start_date?: string | null
           status?: string
           stylist_id?: string | null
+          total_deadline?: string | null
           updated_at?: string
         }
         Update: {
@@ -100,6 +102,7 @@ export type Database = {
           start_date?: string | null
           status?: string
           stylist_id?: string | null
+          total_deadline?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -219,6 +222,50 @@ export type Database = {
         }
         Relationships: []
       }
+      product_files: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          product_id: string | null
+          updated_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          product_id?: string | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          product_id?: string | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_files_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_materials: {
         Row: {
           created_at: string
@@ -254,6 +301,53 @@ export type Database = {
           },
           {
             foreignKeyName: "product_materials_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_stages: {
+        Row: {
+          actual_date: string | null
+          created_at: string | null
+          expected_date: string | null
+          id: string
+          notes: string | null
+          product_id: string | null
+          stage_name: string
+          stage_order: number
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_date?: string | null
+          created_at?: string | null
+          expected_date?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          stage_name: string
+          stage_order: number
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_date?: string | null
+          created_at?: string | null
+          expected_date?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          stage_name?: string
+          stage_order?: number
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_stages_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
