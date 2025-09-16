@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   LayoutDashboard, 
   Users, 
@@ -11,57 +12,96 @@ import {
   Kanban, 
   BarChart3,
   Menu,
-  X
+  X,
+  ChevronDown,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isCadastrosOpen, setIsCadastrosOpen] = useState(false);
   const location = useLocation();
 
-  const navigationItems = [
+  // Estrutura de navegação organizada em seções
+  const navigationSections = [
     {
-      title: "Dashboard",
-      href: "/",
-      icon: LayoutDashboard,
-      exact: true
+      title: "Operacional",
+      items: [
+        {
+          title: "Dashboard",
+          href: "/",
+          icon: LayoutDashboard,
+          exact: true
+        },
+        {
+          title: "Produção",
+          href: "/production-workflow",
+          icon: Kanban
+        },
+        {
+          title: "Relatórios",
+          href: "/reports",
+          icon: BarChart3
+        }
+      ]
     },
     {
-      title: "Clientes",
-      href: "/clients", 
-      icon: Users
-    },
-    {
-      title: "Modelistas",
-      href: "/stylists",
-      icon: UserCheck
-    },
-    {
-      title: "Coleções",
-      href: "/collections",
-      icon: FolderOpen
-    },
-    {
-      title: "Modelos de Produtos",
-      href: "/products",
-      icon: Package
-    },
-    {
-      title: "Materiais",
-      href: "/materials",
-      icon: Palette
-    },
-    {
-      title: "Produção",
-      href: "/production-workflow",
-      icon: Kanban
-    },
-    {
-      title: "Relatórios",
-      href: "/reports",
-      icon: BarChart3
+      title: "Cadastros",
+      icon: Settings,
+      collapsible: true,
+      items: [
+        {
+          title: "Clientes",
+          href: "/clients", 
+          icon: Users
+        },
+        {
+          title: "Modelistas",
+          href: "/stylists",
+          icon: UserCheck
+        },
+        {
+          title: "Coleções",
+          href: "/collections",
+          icon: FolderOpen
+        },
+        {
+          title: "Modelos de Produtos",
+          href: "/products",
+          icon: Package
+        },
+        {
+          title: "Materiais",
+          href: "/materials",
+          icon: Palette
+        }
+      ]
     }
   ];
+
+  // Verificar se alguma página de cadastros está ativa
+  const cadastroRoutes = ['/clients', '/stylists', '/collections', '/products', '/materials'];
+  const isInCadastroSection = cadastroRoutes.some(route => location.pathname.startsWith(route));
+
+  // Persistir estado da seção cadastros e auto-expandir se estiver em uma página de cadastro
+  useEffect(() => {
+    const stored = localStorage.getItem('cadastros-section-open');
+    if (isInCadastroSection) {
+      setIsCadastrosOpen(true);
+    } else if (stored !== null) {
+      setIsCadastrosOpen(JSON.parse(stored));
+    } else {
+      setIsCadastrosOpen(false);
+    }
+  }, [isInCadastroSection]);
+
+  // Salvar estado quando mudar
+  const handleCadastrosToggle = () => {
+    const newState = !isCadastrosOpen;
+    setIsCadastrosOpen(newState);
+    localStorage.setItem('cadastros-section-open', JSON.stringify(newState));
+  };
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) {
@@ -99,28 +139,77 @@ const Navigation = () => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.href, item.exact);
-              
-              return (
-                <NavLink
-                  key={item.href}
-                  to={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className={cn(
-                    "flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-accent/50",
-                    active 
-                      ? "bg-gradient-accent text-white shadow-elegant" 
-                      : "text-foreground hover:text-accent-foreground"
-                  )}
-                >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
-                  <span>{item.title}</span>
-                </NavLink>
-              );
-            })}
+          <nav className="flex-1 p-4 space-y-4">
+            {navigationSections.map((section) => (
+              <div key={section.title}>
+                {section.collapsible ? (
+                  <Collapsible open={isCadastrosOpen} onOpenChange={handleCadastrosToggle}>
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center justify-between p-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors group">
+                        <div className="flex items-center space-x-2">
+                          <section.icon className="h-4 w-4" />
+                          <span>{section.title}</span>
+                        </div>
+                        <ChevronDown className={cn(
+                          "h-4 w-4 transition-transform duration-200",
+                          isCadastrosOpen ? "rotate-180" : "rotate-0"
+                        )} />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-1 mt-2">
+                      {section.items.map((item) => {
+                        const Icon = item.icon;
+                        const active = isActive(item.href, item.exact);
+                        
+                        return (
+                          <NavLink
+                            key={item.href}
+                            to={item.href}
+                            onClick={() => setIsOpen(false)}
+                            className={cn(
+                              "flex items-center space-x-3 px-4 py-2 ml-4 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-accent/50",
+                              active 
+                                ? "bg-gradient-accent text-white shadow-elegant" 
+                                : "text-foreground hover:text-accent-foreground"
+                            )}
+                          >
+                            <Icon className="h-4 w-4 flex-shrink-0" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        );
+                      })}
+                    </CollapsibleContent>
+                  </Collapsible>
+                ) : (
+                  <div className="space-y-1">
+                    <div className="p-2 text-sm font-semibold text-muted-foreground">
+                      {section.title}
+                    </div>
+                    {section.items.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.href, item.exact);
+                      
+                      return (
+                        <NavLink
+                          key={item.href}
+                          to={item.href}
+                          onClick={() => setIsOpen(false)}
+                          className={cn(
+                            "flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-accent/50",
+                            active 
+                              ? "bg-gradient-accent text-white shadow-elegant" 
+                              : "text-foreground hover:text-accent-foreground"
+                          )}
+                        >
+                          <Icon className="h-5 w-5 flex-shrink-0" />
+                          <span>{item.title}</span>
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
           </nav>
 
           {/* Footer */}
