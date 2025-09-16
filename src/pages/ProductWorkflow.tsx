@@ -36,9 +36,9 @@ export function ProductWorkflow() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCollection, setFilterCollection] = useState<string>("");
-  const [filterClient, setFilterClient] = useState<string>("");
-  const [filterStatus, setFilterStatus] = useState<string>("");
+  const [filterCollection, setFilterCollection] = useState<string>("all");
+  const [filterClient, setFilterClient] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [tvMode, setTvMode] = useState(false);
 
   useEffect(() => {
@@ -68,8 +68,8 @@ export function ProductWorkflow() {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.code.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCollection = !filterCollection || product.collection_name === filterCollection;
-    const matchesClient = !filterClient || product.client_name === filterClient;
+    const matchesCollection = filterCollection === 'all' || !filterCollection || product.collection_name === filterCollection;
+    const matchesClient = filterClient === 'all' || !filterClient || product.client_name === filterClient;
     
     let matchesStatus = true;
     if (filterStatus === 'overdue') {
@@ -78,6 +78,8 @@ export function ProductWorkflow() {
       matchesStatus = !isOverdue(product) && product.current_stage?.status !== 'concluida';
     } else if (filterStatus === 'completed') {
       matchesStatus = product.current_stage?.status === 'concluida';
+    } else if (filterStatus === 'all') {
+      matchesStatus = true;
     }
 
     return matchesSearch && matchesCollection && matchesClient && matchesStatus;
@@ -171,7 +173,7 @@ export function ProductWorkflow() {
             <SelectValue placeholder="Coleção" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas coleções</SelectItem>
+            <SelectItem value="all">Todas coleções</SelectItem>
             {collections.map(collection => (
               <SelectItem key={collection.id} value={collection.name}>
                 {collection.name}
@@ -185,7 +187,7 @@ export function ProductWorkflow() {
             <SelectValue placeholder="Cliente" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos clientes</SelectItem>
+            <SelectItem value="all">Todos clientes</SelectItem>
             {clients.map(client => (
               <SelectItem key={client.id} value={client.name}>
                 {client.name}
@@ -199,21 +201,21 @@ export function ProductWorkflow() {
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos status</SelectItem>
+            <SelectItem value="all">Todos status</SelectItem>
             <SelectItem value="overdue">Atrasados</SelectItem>
             <SelectItem value="on_time">No prazo</SelectItem>
             <SelectItem value="completed">Concluídos</SelectItem>
           </SelectContent>
         </Select>
 
-        {(searchTerm || filterCollection || filterClient || filterStatus) && (
+        {(searchTerm || (filterCollection && filterCollection !== 'all') || (filterClient && filterClient !== 'all') || (filterStatus && filterStatus !== 'all')) && (
           <Button 
             variant="ghost" 
             onClick={() => {
               setSearchTerm("");
-              setFilterCollection("");
-              setFilterClient("");
-              setFilterStatus("");
+              setFilterCollection("all");
+              setFilterClient("all");
+              setFilterStatus("all");
             }}
           >
             Limpar filtros
