@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { FileUpload } from "./FileUpload";
 import { ImageGallery } from "./ImageGallery";
+import { SetMainImage } from "./SetMainImage";
 
 interface ProductFile {
   id: string;
@@ -104,11 +105,11 @@ export function ProductCard({
     <Card className={`p-4 cursor-pointer transition-all duration-200 hover:shadow-lg ${
       isOverdue ? 'ring-2 ring-red-400 bg-red-50/50' : ''
     }`}>
-      {/* Product Image */}
-      {product.image_url && (
+      {/* Product Image - Show main image or first uploaded image as fallback */}
+      {(product.image_url || (imageFiles.length > 0)) && (
         <div className="w-full h-32 mb-3 rounded-lg overflow-hidden bg-muted">
           <img 
-            src={product.image_url} 
+            src={product.image_url || imageFiles[0]?.file_url} 
             alt={product.name}
             className="w-full h-full object-cover"
           />
@@ -193,11 +194,11 @@ export function ProductCard({
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* Product Image */}
-            {product.image_url && (
-              <div className="w-full h-48 rounded-lg overflow-hidden bg-muted">
+            {/* Product Image - Show main image or first uploaded image */}
+            {(product.image_url || imageFiles.length > 0) && (
+              <div className="w-full h-48 rounded-lg overflow-hidden bg-muted mb-4">
                 <img 
-                  src={product.image_url} 
+                  src={product.image_url || imageFiles[0]?.file_url} 
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
@@ -229,10 +230,25 @@ export function ProductCard({
               />
             </div>
 
+            {/* Set Main Image */}
+            {imageFiles.length > 0 && (
+              <div className="space-y-2">
+                <SetMainImage 
+                  images={imageFiles}
+                  productId={product.id}
+                  currentMainImage={product.image_url}
+                  onMainImageSet={() => {
+                    // Refresh the parent component data
+                    window.location.reload();
+                  }}
+                />
+              </div>
+            )}
+
             {/* Image Gallery */}
             {imageFiles.length > 0 && (
               <div className="space-y-2">
-                <h4 className="font-semibold">Imagens</h4>
+                <h4 className="font-semibold">Galeria de Imagens</h4>
                 <ImageGallery 
                   images={imageFiles} 
                   onDelete={onFileDelete}

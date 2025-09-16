@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import CommentsSection from "@/components/CommentsSection";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface Client {
   id: string;
@@ -80,6 +81,7 @@ const Products = () => {
     category: "",
     status: "rascunho",
     description: "",
+    image_url: "",
     size_range: "",
     target_price: "",
     production_cost: "",
@@ -177,6 +179,24 @@ const Products = () => {
     setFilteredProducts(filtered);
   };
 
+  const uploadProductImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `product-images/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-files')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('product-files')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -190,6 +210,7 @@ const Products = () => {
         category: formData.category || null,
         status: formData.status,
         description: formData.description || null,
+        image_url: formData.image_url || null,
         size_range: formData.size_range || null,
         target_price: formData.target_price ? parseFloat(formData.target_price) : null,
         production_cost: formData.production_cost ? parseFloat(formData.production_cost) : null,
@@ -239,6 +260,7 @@ const Products = () => {
       category: product.category || "",
       status: product.status,
       description: product.description || "",
+      image_url: product.image_url || "",
       size_range: product.size_range || "",
       target_price: product.target_price?.toString() || "",
       production_cost: product.production_cost?.toString() || "",
@@ -272,6 +294,7 @@ const Products = () => {
       category: "",
       status: "rascunho",
       description: "",
+      image_url: "",
       size_range: "",
       target_price: "",
       production_cost: "",
@@ -509,6 +532,15 @@ const Products = () => {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label>Imagem do Produto</Label>
+                <ImageUpload
+                  value={formData.image_url}
+                  onChange={(url) => setFormData({ ...formData, image_url: url || "" })}
+                  onUpload={uploadProductImage}
+                />
+              </div>
+
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
@@ -563,6 +595,17 @@ const Products = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProducts.map((product) => (
           <Card key={product.id} className="hover:shadow-lg transition-shadow">
+            {/* Product Image */}
+            {product.image_url && (
+              <div className="w-full h-48 overflow-hidden rounded-t-lg">
+                <img 
+                  src={product.image_url} 
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
