@@ -308,10 +308,38 @@ export type Database = {
           },
         ]
       }
+      production_schedule_config: {
+        Row: {
+          created_at: string | null
+          duration_days: number
+          id: string
+          priority_multiplier: number | null
+          stage_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_days: number
+          id?: string
+          priority_multiplier?: number | null
+          stage_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_days?: number
+          id?: string
+          priority_multiplier?: number | null
+          stage_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       production_stages: {
         Row: {
           actual_date: string | null
           created_at: string | null
+          duration_days: number | null
           expected_date: string | null
           id: string
           notes: string | null
@@ -324,6 +352,7 @@ export type Database = {
         Insert: {
           actual_date?: string | null
           created_at?: string | null
+          duration_days?: number | null
           expected_date?: string | null
           id?: string
           notes?: string | null
@@ -336,6 +365,7 @@ export type Database = {
         Update: {
           actual_date?: string | null
           created_at?: string | null
+          duration_days?: number | null
           expected_date?: string | null
           id?: string
           notes?: string | null
@@ -560,7 +590,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_production_schedule: {
+        Args: { product_id_param: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
