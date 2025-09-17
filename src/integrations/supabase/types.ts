@@ -342,11 +342,13 @@ export type Database = {
           duration_days: number | null
           expected_date: string | null
           id: string
+          maqueteira_responsavel: string | null
           notes: string | null
           product_id: string | null
           stage_name: string
           stage_order: number
           status: string
+          stylist_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -355,11 +357,13 @@ export type Database = {
           duration_days?: number | null
           expected_date?: string | null
           id?: string
+          maqueteira_responsavel?: string | null
           notes?: string | null
           product_id?: string | null
           stage_name: string
           stage_order: number
           status?: string
+          stylist_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -368,11 +372,13 @@ export type Database = {
           duration_days?: number | null
           expected_date?: string | null
           id?: string
+          maqueteira_responsavel?: string | null
           notes?: string | null
           product_id?: string | null
           stage_name?: string
           stage_order?: number
           status?: string
+          stylist_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -381,6 +387,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_stages_stylist_id_fkey"
+            columns: ["stylist_id"]
+            isOneToOne: false
+            referencedRelation: "stylists"
             referencedColumns: ["id"]
           },
         ]

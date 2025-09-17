@@ -46,7 +46,7 @@ export function useProductionStages() {
   const STAGE_ORDER = [
     'Briefing Recebido',
     'Modelagem Técnica', 
-    'Piloto Finalizado',
+    'Prototipagem',
     'Envio para Aprovação',
     'Aprovado',
     'Mostruário e Entregue'
@@ -74,7 +74,10 @@ export function useProductionStages() {
       // Fetch production stages
       const { data: stagesData, error: stagesError } = await supabase
         .from('production_stages')
-        .select('*')
+        .select(`
+          *,
+          stylists(name)
+        `)
         .order('stage_order');
 
       if (stagesError) throw stagesError;
@@ -97,7 +100,7 @@ export function useProductionStages() {
           const stagesToInsert = [
             { product_id: product.id, stage_name: 'Briefing Recebido', stage_order: 1, status: 'pendente', duration_days: 2 },
             { product_id: product.id, stage_name: 'Modelagem Técnica', stage_order: 2, status: 'pendente', duration_days: 5 },
-            { product_id: product.id, stage_name: 'Piloto Finalizado', stage_order: 3, status: 'pendente', duration_days: 7 },
+            { product_id: product.id, stage_name: 'Prototipagem', stage_order: 3, status: 'pendente', duration_days: 7 },
             { product_id: product.id, stage_name: 'Envio para Aprovação', stage_order: 4, status: 'pendente', duration_days: 3 },
             { product_id: product.id, stage_name: 'Aprovado', stage_order: 5, status: 'pendente', duration_days: 2 },
             { product_id: product.id, stage_name: 'Mostruário e Entregue', stage_order: 6, status: 'pendente', duration_days: 1 }
@@ -118,11 +121,18 @@ export function useProductionStages() {
         // Refetch stages after creating missing ones
         const { data: updatedStagesData, error: updatedStagesError } = await supabase
           .from('production_stages')
-          .select('*')
+          .select(`
+            *,
+            stylists(name)
+          `)
           .order('stage_order');
 
-        if (!updatedStagesError) {
-          stagesData.push(...(updatedStagesData || []));
+        if (!updatedStagesError && updatedStagesData) {
+          // Filter out existing stages and add new ones
+          const newStages = updatedStagesData.filter(newStage => 
+            !stagesData.some(existingStage => existingStage.id === newStage.id)
+          );
+          stagesData.push(...newStages);
         }
       }
 

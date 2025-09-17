@@ -12,6 +12,11 @@ import { ProductionFunnelChart } from "@/components/dashboard/ProductionFunnelCh
 import { CollectionStatusChart } from "@/components/dashboard/CollectionStatusChart";
 import { RecentActivityWidget } from "@/components/dashboard/RecentActivityWidget";
 import ScheduleTimelineWidget from "@/components/dashboard/ScheduleTimelineWidget";
+import { DeliveryPerformanceCard } from "@/components/dashboard/DeliveryPerformanceCard";
+import { StylistPerformanceCard } from "@/components/dashboard/StylistPerformanceCard";
+import { ApprovalRatesCard } from "@/components/dashboard/ApprovalRatesCard";
+import { UrgentAlertsWidget } from "@/components/dashboard/UrgentAlertsWidget";
+import { PrototypingStatusCard } from "@/components/dashboard/PrototypingStatusCard";
 import { useProductionStages } from "@/hooks/useProductionStages";
 import { Button } from "@/components/ui/button";
 
@@ -56,6 +61,57 @@ interface RecentActivity {
   status: string;
 }
 
+interface DeliveryStats {
+  onTime: number;
+  delayed: number;
+  urgent: number;
+  total: number;
+}
+
+interface StylistPerformance {
+  id: string;
+  name: string;
+  activeProducts: number;
+  completedThisMonth: number;
+  averageCompletionDays: number;
+  onTimeRate: number;
+}
+
+interface ApprovalStats {
+  approved: number;
+  rejected: number;
+  pending: number;
+  total: number;
+  approvalRate: number;
+  rejectionRate: number;
+}
+
+interface UrgentAlert {
+  id: string;
+  productName: string;
+  productCode: string;
+  collectionName: string;
+  clientName: string;
+  currentStage: string;
+  expectedDate: Date;
+  daysRemaining: number;
+  stylistName?: string;
+  isOverdue: boolean;
+  severity: 'critical' | 'urgent' | 'warning';
+}
+
+interface PrototypingItem {
+  id: string;
+  productName: string;
+  productCode: string;
+  collectionName: string;
+  stylistName?: string;
+  maqueteiraResponsavel?: string;
+  expectedDate?: Date;
+  status: 'pendente' | 'em_andamento' | 'concluido' | 'atrasado';
+  daysRemaining?: number;
+}
+
 const Dashboard = () => {
   const [stats, setStats] = useState<DashboardStats>({
     totalClients: 0,
@@ -75,6 +131,13 @@ const Dashboard = () => {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  
+  // Operational dashboard data
+  const [deliveryStats, setDeliveryStats] = useState<DeliveryStats>({ onTime: 0, delayed: 0, urgent: 0, total: 0 });
+  const [stylistPerformance, setStylistPerformance] = useState<StylistPerformance[]>([]);
+  const [approvalStats, setApprovalStats] = useState<ApprovalStats>({ approved: 0, rejected: 0, pending: 0, total: 0, approvalRate: 0, rejectionRate: 0 });
+  const [urgentAlerts, setUrgentAlerts] = useState<UrgentAlert[]>([]);
+  const [prototypingItems, setPrototypingItems] = useState<PrototypingItem[]>([]);
   const { toast } = useToast();
 
   const { 
@@ -96,7 +159,8 @@ const Dashboard = () => {
         fetchClientAnalytics(),
         fetchProductionStages(),
         fetchCollectionStatus(),
-        fetchRecentActivity()
+        fetchRecentActivity(),
+        fetchOperationalData()
       ]);
     } catch (error) {
       console.error('Erro ao buscar dados do dashboard:', error);
@@ -241,6 +305,163 @@ const Dashboard = () => {
     }
   };
 
+  const fetchOperationalData = async () => {
+    try {
+      // Fetch delivery performance
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select(`
+          id, name, code, status,
+          collection_id,
+          collections!inner(name, end_date, client_id, clients!inner(name)),
+          production_stages!inner(
+            id, stage_name, status, expected_date, actual_date, stage_order,
+            stylist_id, stylists(name), maqueteira_responsavel
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (productsError) throw productsError;
+
+      // Calculate delivery stats
+      let onTime = 0, delayed = 0, urgent = 0;
+      const alerts: UrgentAlert[] = [];
+      const prototyping: PrototypingItem[] = [];
+
+      products?.forEach(product => {
+        const currentStage = product.production_stages
+          .filter(stage => stage.status === 'em_andamento' || stage.status === 'pendente')
+          .sort((a, b) => a.stage_order - b.stage_order)[0];
+
+        if (currentStage?.expected_date) {
+          const expectedDate = new Date(currentStage.expected_date);
+          const today = new Date();
+          const diffTime = expectedDate.getTime() - today.getTime();
+          const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          if (daysRemaining < 0) {
+            delayed++;
+            alerts.push({
+              id: product.id,
+              productName: product.name,
+              productCode: product.code,
+              collectionName: product.collections.name,
+              clientName: product.collections.clients.name,
+              currentStage: currentStage.stage_name,
+              expectedDate,
+              daysRemaining,
+              stylistName: currentStage.stylists?.name,
+              isOverdue: true,
+              severity: 'critical'
+            });
+          } else if (daysRemaining <= 3) {
+            urgent++;
+            alerts.push({
+              id: product.id,
+              productName: product.name,
+              productCode: product.code,
+              collectionName: product.collections.name,
+              clientName: product.collections.clients.name,
+              currentStage: currentStage.stage_name,
+              expectedDate,
+              daysRemaining,
+              stylistName: currentStage.stylists?.name,
+              isOverdue: false,
+              severity: daysRemaining <= 1 ? 'urgent' : 'warning'
+            });
+          } else {
+            onTime++;
+          }
+
+          // Collect prototipagem items
+          if (currentStage.stage_name === 'Prototipagem') {
+            prototyping.push({
+              id: product.id,
+              productName: product.name,
+              productCode: product.code,
+              collectionName: product.collections.name,
+              stylistName: currentStage.stylists?.name,
+              maqueteiraResponsavel: currentStage.maqueteira_responsavel,
+              expectedDate,
+              status: daysRemaining < 0 ? 'atrasado' : currentStage.status === 'em_andamento' ? 'em_andamento' : 'pendente',
+              daysRemaining
+            });
+          }
+        }
+      });
+
+      setDeliveryStats({ onTime, delayed, urgent, total: onTime + delayed + urgent });
+      setUrgentAlerts(alerts.sort((a, b) => a.daysRemaining - b.daysRemaining));
+      setPrototypingItems(prototyping);
+
+      // Fetch stylist performance
+      const { data: stylists, error: stylistsError } = await supabase
+        .from('stylists')
+        .select(`
+          id, name,
+          production_stages!stylist_id(
+            id, status, actual_date, expected_date, created_at
+          )
+        `)
+        .eq('active', true);
+
+      if (stylistsError) throw stylistsError;
+
+      const stylistPerf: StylistPerformance[] = stylists?.map(stylist => {
+        const stages = stylist.production_stages || [];
+        const activeProducts = stages.filter(s => s.status === 'em_andamento').length;
+        const completedThisMonth = stages.filter(s => {
+          if (!s.actual_date) return false;
+          const actualDate = new Date(s.actual_date);
+          const now = new Date();
+          return actualDate.getMonth() === now.getMonth() && actualDate.getFullYear() === now.getFullYear();
+        }).length;
+
+        const completedStages = stages.filter(s => s.actual_date && s.expected_date);
+        const onTimeStages = completedStages.filter(s => {
+          const actual = new Date(s.actual_date);
+          const expected = new Date(s.expected_date);
+          return actual <= expected;
+        });
+
+        const onTimeRate = completedStages.length > 0 ? Math.round((onTimeStages.length / completedStages.length) * 100) : 0;
+
+        return {
+          id: stylist.id,
+          name: stylist.name,
+          activeProducts,
+          completedThisMonth,
+          averageCompletionDays: 0, // Calculate if needed
+          onTimeRate
+        };
+      }) || [];
+
+      setStylistPerformance(stylistPerf);
+
+      // Calculate approval stats (simplified)
+      const totalStages = products?.reduce((acc, p) => acc + p.production_stages.length, 0) || 0;
+      const approvedStages = products?.reduce((acc, p) => 
+        acc + p.production_stages.filter(s => s.status === 'concluido').length, 0
+      ) || 0;
+      const rejectedStages = 0; // Would need rejection tracking
+      const pendingStages = products?.reduce((acc, p) => 
+        acc + p.production_stages.filter(s => s.status === 'pendente').length, 0
+      ) || 0;
+
+      setApprovalStats({
+        approved: approvedStages,
+        rejected: rejectedStages,
+        pending: pendingStages,
+        total: totalStages,
+        approvalRate: totalStages > 0 ? Math.round((approvedStages / totalStages) * 100) : 0,
+        rejectionRate: totalStages > 0 ? Math.round((rejectedStages / totalStages) * 100) : 0
+      });
+
+    } catch (error) {
+      console.error('Error fetching operational data:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -328,6 +549,37 @@ const Dashboard = () => {
             <div className="text-2xl font-bold">{stats.totalStylists}</div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Operational Performance Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <DeliveryPerformanceCard 
+          stats={deliveryStats} 
+          loading={loading} 
+        />
+        <ApprovalRatesCard 
+          overallStats={approvalStats}
+          stageStats={[]}
+          loading={loading} 
+        />
+        <div className="lg:col-span-1">
+          <PrototypingStatusCard 
+            items={prototypingItems}
+            loading={loading} 
+          />
+        </div>
+      </div>
+
+      {/* Alerts and Performance */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <UrgentAlertsWidget 
+          alerts={urgentAlerts}
+          loading={loading} 
+        />
+        <StylistPerformanceCard 
+          stylists={stylistPerformance}
+          loading={loading} 
+        />
       </div>
 
       {/* Client Analytics Section */}
