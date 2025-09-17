@@ -613,7 +613,9 @@ const Products = () => {
                     <Package className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">{product.name}</CardTitle>
+                    <Link to={`/products/${product.id}`}>
+                      <CardTitle className="text-lg hover:text-primary transition-colors cursor-pointer">{product.name}</CardTitle>
+                    </Link>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge className={getStatusColor(product.status)}>
                         {statusOptions.find(s => s.value === product.status)?.label}

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Users, Building2, Activity } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface ClientAnalytics {
   topClients: Array<{
@@ -52,7 +53,9 @@ export const ClientAnalyticsCard = ({ analytics, loading }: ClientAnalyticsCardP
                   <Badge variant="outline" className="w-6 h-6 p-0 flex items-center justify-center">
                     {index + 1}
                   </Badge>
-                  <span className="text-sm font-medium">{client.name}</span>
+                  <Link to={`/clients/${client.id}`}>
+                    <span className="text-sm font-medium hover:text-primary cursor-pointer">{client.name}</span>
+                  </Link>
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {client.total_collections} coleções

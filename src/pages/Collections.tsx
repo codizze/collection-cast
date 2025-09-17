@@ -449,7 +449,9 @@ const Collections = () => {
                       <FolderOpen className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">{collection.name}</CardTitle>
+                      <Link to={`/collections/${collection.id}`}>
+                        <CardTitle className="text-lg hover:text-primary transition-colors cursor-pointer">{collection.name}</CardTitle>
+                      </Link>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge className={getStatusColor(collection.status)}>
                           <StatusIcon className="h-3 w-3 mr-1" />

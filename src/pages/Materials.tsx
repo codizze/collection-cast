@@ -480,7 +480,9 @@ const Materials = () => {
                       <Package className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">{material.name}</CardTitle>
+                      <Link to={`/materials/${material.id}`}>
+                        <CardTitle className="text-lg hover:text-primary transition-colors cursor-pointer">{material.name}</CardTitle>
+                      </Link>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge className={getStatusColor(material.active)}>
                           {material.active ? "Ativo" : "Inativo"}

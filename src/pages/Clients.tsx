@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Search, Plus, MoreVertical, Building2, Edit, Trash2, Eye } from "lucide-react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -264,7 +265,11 @@ const Clients = () => {
                     <Building2 className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">{client.name}</CardTitle>
+                    <Link to={`/clients/${client.id}`}>
+                      <CardTitle className="text-lg hover:text-primary transition-colors cursor-pointer">
+                        {client.name}
+                      </CardTitle>
+                    </Link>
                     <Badge className={getStatusColor(client.active)}>{client.active ? "Ativo" : "Inativo"}</Badge>
                   </div>
                 </div>

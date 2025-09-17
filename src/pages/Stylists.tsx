@@ -452,7 +452,9 @@ const Stylists = () => {
                     <User className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">{stylist.name}</CardTitle>
+                    <Link to={`/stylists/${stylist.id}`}>
+                      <CardTitle className="text-lg hover:text-primary transition-colors cursor-pointer">{stylist.name}</CardTitle>
+                    </Link>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge className={getStatusColor(stylist.active)}>
                         {stylist.active ? "Ativo" : "Inativo"}
