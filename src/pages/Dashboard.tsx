@@ -198,21 +198,28 @@ const Dashboard = () => {
   };
 
   const fetchClientAnalytics = async () => {
-    // Fetch top clients with collections
+    // Fetch all clients with their collections (using LEFT JOIN)
     const { data: topClientsData } = await supabase.from('clients').select(`
       id, name,
-      collections!inner(id, status, created_at)
+      collections(id, status, created_at)
     `);
 
     const processedClients = topClientsData?.map(client => ({
       id: client.id,
       name: client.name,
-      total_collections: client.collections.length,
-      active_collections: client.collections.filter((c: any) => c.status !== 'concluido').length,
-      last_activity: client.collections.sort((a: any, b: any) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )[0]?.created_at || new Date().toISOString()
-    })).sort((a, b) => b.total_collections - a.total_collections).slice(0, 5) || [];
+      total_collections: client.collections?.length || 0,
+      active_collections: client.collections?.filter((c: any) => 
+        c.status !== 'concluido' && c.status !== 'concluida'
+      ).length || 0,
+      last_activity: client.collections && client.collections.length > 0 
+        ? client.collections.sort((a: any, b: any) => 
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          )[0]?.created_at 
+        : new Date().toISOString()
+    }))
+    .filter(client => client.total_collections > 0)
+    .sort((a, b) => b.total_collections - a.total_collections)
+    .slice(0, 5) || [];
 
     setClientAnalytics({
       topClients: processedClients,
@@ -253,6 +260,7 @@ const Dashboard = () => {
             stageData.in_progress++;
             break;
           case 'concluido':
+          case 'concluida':
             stageData.completed++;
             break;
         }
@@ -307,14 +315,14 @@ const Dashboard = () => {
 
   const fetchOperationalData = async () => {
     try {
-      // Fetch delivery performance
+      // Fetch delivery performance with LEFT JOINs to avoid missing data
       const { data: products, error: productsError } = await supabase
         .from('products')
         .select(`
           id, name, code, status,
           collection_id,
-          collections!inner(name, end_date, client_id, clients!inner(name)),
-          production_stages!inner(
+          collections(name, end_date, client_id, clients(name)),
+          production_stages(
             id, stage_name, status, expected_date, actual_date, stage_order,
             stylist_id, stylists(name), maqueteira_responsavel
           )
@@ -329,6 +337,9 @@ const Dashboard = () => {
       const prototyping: PrototypingItem[] = [];
 
       products?.forEach(product => {
+        // Skip products without production stages or collections
+        if (!product.production_stages || !product.collections) return;
+        
         const currentStage = product.production_stages
           .filter(stage => stage.status === 'em_andamento' || stage.status === 'pendente')
           .sort((a, b) => a.stage_order - b.stage_order)[0];
@@ -438,14 +449,18 @@ const Dashboard = () => {
 
       setStylistPerformance(stylistPerf);
 
-      // Calculate approval stats (simplified)
-      const totalStages = products?.reduce((acc, p) => acc + p.production_stages.length, 0) || 0;
+      // Calculate approval stats (handling both 'concluido' and 'concluida')
+      const totalStages = products?.reduce((acc, p) => 
+        acc + (p.production_stages?.length || 0), 0
+      ) || 0;
       const approvedStages = products?.reduce((acc, p) => 
-        acc + p.production_stages.filter(s => s.status === 'concluido').length, 0
+        acc + (p.production_stages?.filter(s => 
+          s.status === 'concluido' || s.status === 'concluida'
+        ).length || 0), 0
       ) || 0;
       const rejectedStages = 0; // Would need rejection tracking
       const pendingStages = products?.reduce((acc, p) => 
-        acc + p.production_stages.filter(s => s.status === 'pendente').length, 0
+        acc + (p.production_stages?.filter(s => s.status === 'pendente').length || 0), 0
       ) || 0;
 
       setApprovalStats({
