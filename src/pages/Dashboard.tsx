@@ -231,42 +231,53 @@ const Dashboard = () => {
 
   const fetchProductionStages = async () => {
     const { data } = await supabase.from('production_stages').select(`
-      stage_name, stage_order, status
+      stage_name, stage_order, status, product_id
     `);
 
     if (data) {
       const stageMap = new Map();
+      
+      // Group by stage_name and count unique products per stage
       data.forEach(stage => {
         const key = stage.stage_name;
         if (!stageMap.has(key)) {
           stageMap.set(key, {
             stage_name: stage.stage_name,
-            product_count: 0,
-            pending: 0,
-            in_progress: 0,
-            completed: 0,
-            stage_order: stage.stage_order
+            stage_order: stage.stage_order,
+            products: new Set(),
+            pending: new Set(),
+            in_progress: new Set(),
+            completed: new Set()
           });
         }
         
         const stageData = stageMap.get(key);
-        stageData.product_count++;
+        stageData.products.add(stage.product_id);
         
         switch (stage.status) {
           case 'pendente':
-            stageData.pending++;
+            stageData.pending.add(stage.product_id);
             break;
           case 'em_andamento':
-            stageData.in_progress++;
+            stageData.in_progress.add(stage.product_id);
             break;
           case 'concluido':
           case 'concluida':
-            stageData.completed++;
+            stageData.completed.add(stage.product_id);
             break;
         }
       });
 
-      const stages = Array.from(stageMap.values()).sort((a, b) => a.stage_order - b.stage_order);
+      // Convert Sets to counts
+      const stages = Array.from(stageMap.values()).map(stage => ({
+        stage_name: stage.stage_name,
+        product_count: stage.products.size,
+        pending: stage.pending.size,
+        in_progress: stage.in_progress.size,
+        completed: stage.completed.size,
+        stage_order: stage.stage_order
+      })).sort((a, b) => a.stage_order - b.stage_order);
+      
       setProductionStages(stages);
     }
   };
@@ -332,7 +343,7 @@ const Dashboard = () => {
       if (productsError) throw productsError;
 
       // Calculate delivery stats
-      let onTime = 0, delayed = 0, urgent = 0;
+      let onTime = 0, delayed = 0, urgent = 0, completed = 0;
       const alerts: UrgentAlert[] = [];
       const prototyping: PrototypingItem[] = [];
 
@@ -340,96 +351,136 @@ const Dashboard = () => {
         // Skip products without production stages or collections
         if (!product.production_stages || !product.collections) return;
         
-        const currentStage = product.production_stages
-          .filter(stage => stage.status === 'em_andamento' || stage.status === 'pendente')
-          .sort((a, b) => a.stage_order - b.stage_order)[0];
-
-        if (currentStage?.expected_date) {
-          const expectedDate = new Date(currentStage.expected_date);
-          const today = new Date();
-          const diffTime = expectedDate.getTime() - today.getTime();
-          const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-          if (daysRemaining < 0) {
-            delayed++;
-            alerts.push({
-              id: product.id,
-              productName: product.name,
-              productCode: product.code,
-              collectionName: product.collections.name,
-              clientName: product.collections.clients.name,
-              currentStage: currentStage.stage_name,
-              expectedDate,
-              daysRemaining,
-              stylistName: currentStage.stylists?.name,
-              isOverdue: true,
-              severity: 'critical'
-            });
-          } else if (daysRemaining <= 3) {
-            urgent++;
-            alerts.push({
-              id: product.id,
-              productName: product.name,
-              productCode: product.code,
-              collectionName: product.collections.name,
-              clientName: product.collections.clients.name,
-              currentStage: currentStage.stage_name,
-              expectedDate,
-              daysRemaining,
-              stylistName: currentStage.stylists?.name,
-              isOverdue: false,
-              severity: daysRemaining <= 1 ? 'urgent' : 'warning'
-            });
+        // Check if product is completed (all stages done)
+        const allStagesCompleted = product.production_stages.every(stage => 
+          stage.status === 'concluida' || stage.status === 'concluido'
+        );
+        
+        if (allStagesCompleted) {
+          // For completed products, check final delivery performance
+          const finalStage = product.production_stages
+            .sort((a, b) => b.stage_order - a.stage_order)[0];
+          
+          if (finalStage?.expected_date && finalStage?.actual_date) {
+            const expectedDate = new Date(finalStage.expected_date);
+            const actualDate = new Date(finalStage.actual_date);
+            
+            if (actualDate <= expectedDate) {
+              onTime++;
+            } else {
+              delayed++;
+            }
           } else {
-            onTime++;
+            completed++;
           }
+        } else {
+          // For active products, check current stage
+          const currentStage = product.production_stages
+            .filter(stage => stage.status === 'em_andamento' || stage.status === 'pendente')
+            .sort((a, b) => a.stage_order - b.stage_order)[0];
 
-          // Collect prototipagem items
-          if (currentStage.stage_name === 'Prototipagem') {
-            prototyping.push({
-              id: product.id,
-              productName: product.name,
-              productCode: product.code,
-              collectionName: product.collections.name,
-              stylistName: currentStage.stylists?.name,
-              maqueteiraResponsavel: currentStage.maqueteira_responsavel,
-              expectedDate,
-              status: daysRemaining < 0 ? 'atrasado' : currentStage.status === 'em_andamento' ? 'em_andamento' : 'pendente',
-              daysRemaining
-            });
+          if (currentStage?.expected_date) {
+            const expectedDate = new Date(currentStage.expected_date);
+            const today = new Date();
+            const diffTime = expectedDate.getTime() - today.getTime();
+            const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (daysRemaining < 0) {
+              delayed++;
+              alerts.push({
+                id: product.id,
+                productName: product.name,
+                productCode: product.code,
+                collectionName: product.collections.name,
+                clientName: product.collections.clients.name,
+                currentStage: currentStage.stage_name,
+                expectedDate,
+                daysRemaining,
+                stylistName: currentStage.stylists?.name,
+                isOverdue: true,
+                severity: 'critical'
+              });
+            } else if (daysRemaining <= 3) {
+              urgent++;
+              alerts.push({
+                id: product.id,
+                productName: product.name,
+                productCode: product.code,
+                collectionName: product.collections.name,
+                clientName: product.collections.clients.name,
+                currentStage: currentStage.stage_name,
+                expectedDate,
+                daysRemaining,
+                stylistName: currentStage.stylists?.name,
+                isOverdue: false,
+                severity: daysRemaining <= 1 ? 'urgent' : 'warning'
+              });
+            } else {
+              onTime++;
+            }
+
+            // Collect prototipagem items
+            if (currentStage.stage_name === 'Prototipagem') {
+              prototyping.push({
+                id: product.id,
+                productName: product.name,
+                productCode: product.code,
+                collectionName: product.collections.name,
+                stylistName: currentStage.stylists?.name,
+                maqueteiraResponsavel: currentStage.maqueteira_responsavel,
+                expectedDate,
+                status: daysRemaining < 0 ? 'atrasado' : currentStage.status === 'em_andamento' ? 'em_andamento' : 'pendente',
+                daysRemaining
+              });
+            }
           }
         }
       });
 
-      setDeliveryStats({ onTime, delayed, urgent, total: onTime + delayed + urgent });
+      setDeliveryStats({ onTime, delayed, urgent, total: onTime + delayed + urgent + completed });
       setUrgentAlerts(alerts.sort((a, b) => a.daysRemaining - b.daysRemaining));
       setPrototypingItems(prototyping);
 
-      // Fetch stylist performance
-      const { data: stylists, error: stylistsError } = await supabase
-        .from('stylists')
+      // Fetch stylist performance with correct query to get assigned stages
+      const { data: allStages, error: stagesError } = await supabase
+        .from('production_stages')
         .select(`
-          id, name,
-          production_stages!stylist_id(
-            id, status, actual_date, expected_date, created_at
-          )
+          id, status, actual_date, expected_date, created_at, stylist_id,
+          stylists(id, name)
         `)
-        .eq('active', true);
+        .not('stylist_id', 'is', null);
 
-      if (stylistsError) throw stylistsError;
+      if (stagesError) throw stagesError;
 
-      const stylistPerf: StylistPerformance[] = stylists?.map(stylist => {
-        const stages = stylist.production_stages || [];
-        const activeProducts = stages.filter(s => s.status === 'em_andamento').length;
-        const completedThisMonth = stages.filter(s => {
+      // Group stages by stylist and calculate performance
+      const stylistMap = new Map();
+      
+      allStages?.forEach(stage => {
+        if (!stage.stylists) return;
+        
+        const stylistId = stage.stylists.id;
+        if (!stylistMap.has(stylistId)) {
+          stylistMap.set(stylistId, {
+            id: stylistId,
+            name: stage.stylists.name,
+            stages: []
+          });
+        }
+        stylistMap.get(stylistId).stages.push(stage);
+      });
+
+      const stylistPerf: StylistPerformance[] = Array.from(stylistMap.values()).map(stylist => {
+        const stages = stylist.stages;
+        const activeProducts = stages.filter((s: any) => s.status === 'em_andamento').length;
+        const completedThisMonth = stages.filter((s: any) => {
           if (!s.actual_date) return false;
           const actualDate = new Date(s.actual_date);
           const now = new Date();
           return actualDate.getMonth() === now.getMonth() && actualDate.getFullYear() === now.getFullYear();
         }).length;
 
-        const completedStages = stages.filter(s => s.actual_date && s.expected_date);
-        const onTimeStages = completedStages.filter(s => {
+        const completedStages = stages.filter((s: any) => s.actual_date && s.expected_date);
+        const onTimeStages = completedStages.filter((s: any) => {
           const actual = new Date(s.actual_date);
           const expected = new Date(s.expected_date);
           return actual <= expected;
@@ -445,7 +496,7 @@ const Dashboard = () => {
           averageCompletionDays: 0, // Calculate if needed
           onTimeRate
         };
-      }) || [];
+      });
 
       setStylistPerformance(stylistPerf);
 
