@@ -449,27 +449,35 @@ const Dashboard = () => {
 
       setStylistPerformance(stylistPerf);
 
-      // Calculate approval stats (handling both 'concluido' and 'concluida')
-      const totalStages = products?.reduce((acc, p) => 
-        acc + (p.production_stages?.length || 0), 0
-      ) || 0;
-      const approvedStages = products?.reduce((acc, p) => 
-        acc + (p.production_stages?.filter(s => 
-          s.status === 'concluido' || s.status === 'concluida'
-        ).length || 0), 0
-      ) || 0;
-      const rejectedStages = 0; // Would need rejection tracking
-      const pendingStages = products?.reduce((acc, p) => 
-        acc + (p.production_stages?.filter(s => s.status === 'pendente').length || 0), 0
-      ) || 0;
+      // Calculate approval stats based on approval workflow (Envio para Aprovação -> Aprovado)
+      let approvedCount = 0;
+      let rejectedCount = 0;
+      let pendingApprovalCount = 0;
+      
+      products?.forEach(product => {
+        if (!product.production_stages) return;
+        
+        // Count stages that went through approval process
+        const approvalStage = product.production_stages.find(s => s.stage_name === 'Envio para Aprovação');
+        const approvedStage = product.production_stages.find(s => s.stage_name === 'Aprovado');
+        
+        if (approvedStage?.status === 'concluida') {
+          approvedCount++;
+        } else if (approvalStage?.status === 'pendente' || approvalStage?.status === 'em_andamento') {
+          pendingApprovalCount++;
+        }
+        // Note: rejectedCount remains 0 as there's no rejection tracking in current system
+      });
+
+      const totalApprovalSubmissions = approvedCount + rejectedCount + pendingApprovalCount;
 
       setApprovalStats({
-        approved: approvedStages,
-        rejected: rejectedStages,
-        pending: pendingStages,
-        total: totalStages,
-        approvalRate: totalStages > 0 ? Math.round((approvedStages / totalStages) * 100) : 0,
-        rejectionRate: totalStages > 0 ? Math.round((rejectedStages / totalStages) * 100) : 0
+        approved: approvedCount,
+        rejected: rejectedCount,
+        pending: pendingApprovalCount,
+        total: totalApprovalSubmissions,
+        approvalRate: totalApprovalSubmissions > 0 ? Math.round((approvedCount / totalApprovalSubmissions) * 100) : 0,
+        rejectionRate: totalApprovalSubmissions > 0 ? Math.round((rejectedCount / totalApprovalSubmissions) * 100) : 0
       });
 
     } catch (error) {
