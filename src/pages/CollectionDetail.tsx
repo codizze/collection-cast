@@ -39,6 +39,7 @@ interface Product {
   code: string;
   status: string;
   category?: string;
+  image_url?: string;
 }
 
 const CollectionDetail = () => {
@@ -93,7 +94,7 @@ const CollectionDetail = () => {
       // Fetch products
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('id, name, code, status, category')
+        .select('id, name, code, status, category, image_url')
         .eq('collection_id', id)
         .order('created_at', { ascending: false });
 
@@ -310,25 +311,34 @@ const CollectionDetail = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {products.map((product) => (
                 <Card key={product.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-2">
-                    <Link to={`/products/${product.id}`}>
-                      <CardTitle className="text-base hover:text-primary transition-colors cursor-pointer">
-                        {product.name}
-                      </CardTitle>
-                    </Link>
-                    <Badge className={getProductStatusColor(product.status)}>
-                      {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="text-sm text-muted-foreground">
-                      Código: {product.code}
-                    </div>
-                    {product.category && (
-                      <div className="text-sm text-muted-foreground">
-                        Categoria: {product.category}
+                  <CardContent className="p-0">
+                    {product.image_url && (
+                      <div className="aspect-square w-full overflow-hidden rounded-t-lg bg-muted">
+                        <img 
+                          src={product.image_url} 
+                          alt={product.name}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform"
+                        />
                       </div>
                     )}
+                    <div className="p-4">
+                      <div className="space-y-2 mb-3">
+                        <Link to={`/products/${product.id}`}>
+                          <h3 className="font-semibold text-base hover:text-primary transition-colors cursor-pointer line-clamp-1">
+                            {product.name}
+                          </h3>
+                        </Link>
+                        <Badge className={getProductStatusColor(product.status)}>
+                          {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
+                        </Badge>
+                      </div>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <div>Código: {product.code}</div>
+                        {product.category && (
+                          <div>Categoria: {product.category}</div>
+                        )}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
