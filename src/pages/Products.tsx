@@ -36,19 +36,18 @@ interface Stylist {
 
 interface Product {
   id: string;
-  name: string;
+  name?: string;
   code: string;
   collection_id: string;
   client_id: string;
   stylist_id?: string;
-  category?: string;
   status: string;
   description?: string;
   image_url?: string;
   size_range?: string;
   target_price?: number;
   production_cost?: number;
-  estimated_hours?: number;
+  difficulty_level: string;
   priority: string;
   created_at: string;
   updated_at: string;
@@ -79,14 +78,13 @@ const Products = () => {
     collection_id: "",
     client_id: "",
     stylist_id: "none",
-    category: "",
     status: "rascunho",
     description: "",
     image_url: "",
     size_range: "",
     target_price: "",
     production_cost: "",
-    estimated_hours: "",
+    difficulty_level: "medio",
     priority: "media"
   });
 
@@ -106,9 +104,10 @@ const Products = () => {
     { value: "urgente", label: "Urgente" }
   ];
 
-  const categories = [
-    "Sandália", "Scarpin", "Sapatilha", "Tênis", "Bota", "Chinelo", 
-    "Espadrille", "Oxford", "Mocassim", "Salto Alto", "Salto Baixo", "Outros"
+  const difficultyOptions = [
+    { value: "baixo", label: "Baixo" },
+    { value: "medio", label: "Médio" },
+    { value: "alto", label: "Alto" }
   ];
 
   useEffect(() => {
@@ -162,9 +161,8 @@ const Products = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (product.name && product.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
         product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.clients?.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -203,19 +201,18 @@ const Products = () => {
     
     try {
       const productData = {
-        name: formData.name,
+        name: formData.name || null,
         code: formData.code,
         collection_id: formData.collection_id,
         client_id: formData.client_id,
         stylist_id: formData.stylist_id === "none" ? null : formData.stylist_id,
-        category: formData.category || null,
         status: formData.status,
         description: formData.description || null,
         image_url: formData.image_url || null,
         size_range: formData.size_range || null,
         target_price: formData.target_price ? parseFloat(formData.target_price) : null,
         production_cost: formData.production_cost ? parseFloat(formData.production_cost) : null,
-        estimated_hours: formData.estimated_hours ? parseInt(formData.estimated_hours) : null,
+        difficulty_level: formData.difficulty_level,
         priority: formData.priority,
       };
 
@@ -253,19 +250,18 @@ const Products = () => {
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setFormData({
-      name: product.name,
+      name: product.name || "",
       code: product.code,
       collection_id: product.collection_id,
       client_id: product.client_id,
       stylist_id: product.stylist_id || "none",
-      category: product.category || "",
       status: product.status,
       description: product.description || "",
       image_url: product.image_url || "",
       size_range: product.size_range || "",
       target_price: product.target_price?.toString() || "",
       production_cost: product.production_cost?.toString() || "",
-      estimated_hours: product.estimated_hours?.toString() || "",
+      difficulty_level: product.difficulty_level,
       priority: product.priority
     });
     setIsDialogOpen(true);
@@ -292,14 +288,13 @@ const Products = () => {
       collection_id: "",
       client_id: "",
       stylist_id: "none",
-      category: "",
       status: "rascunho",
       description: "",
       image_url: "",
       size_range: "",
       target_price: "",
       production_cost: "",
-      estimated_hours: "",
+      difficulty_level: "medio",
       priority: "media"
     });
   };
@@ -362,12 +357,12 @@ const Products = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome do Produto *</Label>
+                  <Label htmlFor="name">Nome do Produto</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
+                    placeholder="Opcional"
                   />
                 </div>
                 <div className="space-y-2">
@@ -433,17 +428,15 @@ const Products = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="category">Categoria</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                  <Label htmlFor="difficulty_level">Nível de Dificuldade</Label>
+                  <Select value={formData.difficulty_level} onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
+                      <SelectValue placeholder="Selecione o nível de dificuldade" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="baixo">Baixo</SelectItem>
+                      <SelectItem value="medio">Médio</SelectItem>
+                      <SelectItem value="alto">Alto</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -513,12 +506,12 @@ const Products = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="estimated_hours">Horas Estimadas</Label>
+                  <Label htmlFor="size_range">Numeração</Label>
                   <Input
-                    id="estimated_hours"
-                    type="number"
-                    value={formData.estimated_hours}
-                    onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
+                    id="size_range"
+                    value={formData.size_range}
+                    onChange={(e) => setFormData({ ...formData, size_range: e.target.value })}
+                    placeholder="Ex: 35-39"
                   />
                 </div>
               </div>
@@ -675,11 +668,10 @@ const Products = () => {
                 )}
               </div>
 
-              {product.category && (
-                <Badge variant="outline" className="text-xs">
-                  {product.category}
-                </Badge>
-              )}
+              <Badge variant="outline" className="text-xs">
+                {product.difficulty_level === 'baixo' ? '🟢 Baixo' : 
+                 product.difficulty_level === 'medio' ? '🟡 Médio' : '🔴 Alto'}
+              </Badge>
 
               <div className="flex justify-between text-sm">
                 {product.target_price && (
@@ -687,9 +679,9 @@ const Products = () => {
                     💰 R$ {product.target_price.toFixed(2)}
                   </span>
                 )}
-                {product.estimated_hours && (
+                {product.size_range && (
                   <span className="text-muted-foreground">
-                    ⏱️ {product.estimated_hours}h
+                    👠 {product.size_range}
                   </span>
                 )}
               </div>

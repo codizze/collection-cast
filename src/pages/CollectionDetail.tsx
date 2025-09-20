@@ -35,10 +35,10 @@ interface Stylist {
 
 interface Product {
   id: string;
-  name: string;
+  name?: string;
   code: string;
   status: string;
-  category?: string;
+  difficulty_level: string;
   image_url?: string;
 }
 
@@ -94,7 +94,7 @@ const CollectionDetail = () => {
       // Fetch products
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('id, name, code, status, category, image_url')
+        .select('id, name, code, status, difficulty_level, image_url')
         .eq('collection_id', id)
         .order('created_at', { ascending: false });
 
@@ -334,9 +334,10 @@ const CollectionDetail = () => {
                       </div>
                       <div className="space-y-1 text-sm text-muted-foreground">
                         <div>Código: {product.code}</div>
-                        {product.category && (
-                          <div>Categoria: {product.category}</div>
-                        )}
+                        <div>
+                          Dificuldade: {product.difficulty_level === 'baixo' ? '🟢 Baixo' : 
+                                      product.difficulty_level === 'medio' ? '🟡 Médio' : '🔴 Alto'}
+                        </div>
                       </div>
                     </div>
                   </CardContent>

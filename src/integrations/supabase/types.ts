@@ -400,16 +400,15 @@ export type Database = {
       }
       products: {
         Row: {
-          category: string | null
           client_id: string
           code: string
           collection_id: string
           created_at: string
           description: string | null
-          estimated_hours: number | null
+          difficulty_level: string | null
           id: string
           image_url: string | null
-          name: string
+          name: string | null
           priority: string | null
           production_cost: number | null
           size_range: string | null
@@ -419,16 +418,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          category?: string | null
           client_id: string
           code: string
           collection_id: string
           created_at?: string
           description?: string | null
-          estimated_hours?: number | null
+          difficulty_level?: string | null
           id?: string
           image_url?: string | null
-          name: string
+          name?: string | null
           priority?: string | null
           production_cost?: number | null
           size_range?: string | null
@@ -438,16 +436,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          category?: string | null
           client_id?: string
           code?: string
           collection_id?: string
           created_at?: string
           description?: string | null
-          estimated_hours?: number | null
+          difficulty_level?: string | null
           id?: string
           image_url?: string | null
-          name?: string
+          name?: string | null
           priority?: string | null
           production_cost?: number | null
           size_range?: string | null
@@ -476,6 +473,114 @@ export type Database = {
             columns: ["stylist_id"]
             isOneToOne: false
             referencedRelation: "stylists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stage_change_history: {
+        Row: {
+          change_reason: string | null
+          changed_by: string
+          created_at: string
+          id: string
+          new_stage_name: string | null
+          new_status: string
+          notes: string | null
+          previous_stage_name: string | null
+          previous_status: string | null
+          product_id: string
+          stage_id: string
+        }
+        Insert: {
+          change_reason?: string | null
+          changed_by: string
+          created_at?: string
+          id?: string
+          new_stage_name?: string | null
+          new_status: string
+          notes?: string | null
+          previous_stage_name?: string | null
+          previous_status?: string | null
+          product_id: string
+          stage_id: string
+        }
+        Update: {
+          change_reason?: string | null
+          changed_by?: string
+          created_at?: string
+          id?: string
+          new_stage_name?: string | null
+          new_status?: string
+          notes?: string | null
+          previous_stage_name?: string | null
+          previous_status?: string | null
+          product_id?: string
+          stage_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_change_history_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_change_history_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "production_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stage_comments: {
+        Row: {
+          author_name: string
+          content: string
+          created_at: string
+          id: string
+          is_internal: boolean
+          priority: string | null
+          product_id: string
+          stage_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_name: string
+          content: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          priority?: string | null
+          product_id: string
+          stage_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          priority?: string | null
+          product_id?: string
+          stage_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_comments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_comments_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "production_stages"
             referencedColumns: ["id"]
           },
         ]
