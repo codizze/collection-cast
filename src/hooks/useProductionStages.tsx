@@ -438,6 +438,86 @@ export function useProductionStages() {
     }
   };
 
+  const moveToStage = async (productId: string, targetStageName: string) => {
+    try {
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+
+      const currentStageOrder = product.current_stage.stage_order;
+      const targetStageOrder = STAGE_ORDER.indexOf(targetStageName) + 1;
+      
+      if (targetStageOrder === 0) {
+        throw new Error('Estágio inválido');
+      }
+
+      // Mark current stage as completed
+      await supabase
+        .from('production_stages')
+        .update({ 
+          status: 'concluida',
+          actual_date: new Date().toISOString().split('T')[0]
+        })
+        .eq('id', product.current_stage.id);
+
+      // Find and activate target stage
+      const { data: targetStage } = await supabase
+        .from('production_stages')
+        .select('*')
+        .eq('product_id', productId)
+        .eq('stage_order', targetStageOrder)
+        .single();
+
+      if (targetStage) {
+        await supabase
+          .from('production_stages')
+          .update({ status: 'em_andamento' })
+          .eq('id', targetStage.id);
+
+        // Log stage change history
+        await supabase
+          .from('stage_change_history')
+          .insert({
+            product_id: productId,
+            stage_id: targetStage.id,
+            previous_status: product.current_stage.status,
+            new_status: 'em_andamento',
+            previous_stage_name: product.current_stage.stage_name,
+            new_stage_name: targetStageName,
+            changed_by: 'Usuário',
+            change_reason: 'Drag and Drop',
+            notes: `Produto movido de ${product.current_stage.stage_name} para ${targetStageName} via drag and drop`
+          });
+      }
+
+      // If moving backwards, reset stages between current and target
+      if (targetStageOrder < currentStageOrder) {
+        await supabase
+          .from('production_stages')
+          .update({ 
+            status: 'pendente',
+            actual_date: null
+          })
+          .eq('product_id', productId)
+          .gt('stage_order', targetStageOrder)
+          .lte('stage_order', currentStageOrder);
+      }
+
+      toast({
+        title: "Sucesso",
+        description: `Produto movido para ${targetStageName}`,
+      });
+
+      await fetchProductsWithStages();
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao mover produto para o estágio",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     fetchProductsWithStages();
   }, []);
@@ -449,6 +529,7 @@ export function useProductionStages() {
     STAGE_ORDER,
     updateStageStatus,
     advanceToNextStage,
+    moveToStage,
     uploadFile,
     deleteFile,
     getProductsByStage,

@@ -26,6 +26,7 @@ export function ProductWorkflow() {
     loading,
     STAGE_ORDER,
     advanceToNextStage,
+    moveToStage,
     uploadFile,
     deleteFile,
     getProductsByStage,
@@ -101,17 +102,16 @@ export function ProductWorkflow() {
     }
   };
 
-  const handleDragEnd = (result: DropResult) => {
+  const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
     
     if (!destination) return;
     if (destination.droppableId === source.droppableId) return;
 
     const productId = draggableId;
-    const newStage = destination.droppableId;
+    const newStageName = destination.droppableId;
     
-    // Here you would implement stage transition logic
-    console.log(`Moving product ${productId} to stage ${newStage}`);
+    await moveToStage(productId, newStageName);
   };
 
   if (tvMode) {
@@ -271,8 +271,8 @@ export function ProductWorkflow() {
                       <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className={`space-y-3 min-h-[200px] ${
-                          snapshot.isDraggingOver ? 'bg-primary/5 rounded-lg' : ''
+                        className={`space-y-3 min-h-[200px] transition-all duration-200 ${
+                          snapshot.isDraggingOver ? 'bg-primary/10 rounded-lg border-2 border-primary border-dashed' : ''
                         }`}
                       >
                         {stageProducts.map((product, productIndex) => (
@@ -286,8 +286,8 @@ export function ProductWorkflow() {
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                className={`${
-                                  snapshot.isDragging ? 'rotate-2 shadow-lg' : ''
+                                className={`transition-all duration-200 ${
+                                  snapshot.isDragging ? 'rotate-2 shadow-lg scale-105 z-50' : 'hover:shadow-md'
                                 }`}
                               >
                                 <ProductCard
