@@ -15,6 +15,7 @@ import Stylists from "./pages/Stylists";
 import StylistDetail from "./pages/StylistDetail";
 import Materials from "./pages/Materials";
 import MaterialDetail from "./pages/MaterialDetail";
+import ProductionConfig from "./pages/ProductionConfig";
 import Workflow from "./pages/Workflow";
 import ProductWorkflow from "./pages/ProductWorkflow";
 import NotFound from "./pages/NotFound";
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/products" element={<Products />} />
             <Route path="/stylists" element={<Stylists />} />
             <Route path="/materials" element={<Materials />} />
+            <Route path="/production-config" element={<ProductionConfig />} />
             <Route path="/workflow" element={<Workflow />} />
             <Route path="/production-workflow" element={<ProductWorkflow />} />
             <Route path="/clients/:id" element={<ClientDetail />} />

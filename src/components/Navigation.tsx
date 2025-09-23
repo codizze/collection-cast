@@ -75,13 +75,18 @@ const Navigation = () => {
           title: "Materiais",
           href: "/materials",
           icon: Palette
+        },
+        {
+          title: "Config. Produção",
+          href: "/production-config",
+          icon: Settings
         }
       ]
     }
   ];
 
   // Verificar se alguma página de cadastros está ativa
-  const cadastroRoutes = ['/clients', '/stylists', '/collections', '/products', '/materials'];
+  const cadastroRoutes = ['/clients', '/stylists', '/collections', '/products', '/materials', '/production-config'];
   const isInCadastroSection = cadastroRoutes.some(route => location.pathname.startsWith(route));
 
   // Persistir estado da seção cadastros e auto-expandir se estiver em uma página de cadastro
