@@ -61,6 +61,7 @@ export type Database = {
       }
       collections: {
         Row: {
+          active_status: string
           budget: number | null
           client_id: string
           created_at: string
@@ -76,6 +77,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active_status?: string
           budget?: number | null
           client_id: string
           created_at?: string
@@ -91,6 +93,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active_status?: string
           budget?: number | null
           client_id?: string
           created_at?: string

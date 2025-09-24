@@ -37,6 +37,7 @@ interface Collection {
   start_date?: string;
   end_date?: string;
   status: string;
+  active_status: string;
   description?: string;
   budget?: number;
   created_at: string;
@@ -53,6 +54,7 @@ const Collections = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterActiveStatus, setFilterActiveStatus] = useState("ativo");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
@@ -67,6 +69,7 @@ const Collections = () => {
     start_date: "",
     end_date: "",
     status: "planejamento",
+    active_status: "ativo",
     description: "",
     budget: ""
   });
@@ -85,7 +88,7 @@ const Collections = () => {
 
   useEffect(() => {
     filterCollections();
-  }, [collections, searchTerm, filterStatus]);
+  }, [collections, searchTerm, filterStatus, filterActiveStatus]);
 
   const fetchData = async () => {
     try {
@@ -136,6 +139,10 @@ const Collections = () => {
       filtered = filtered.filter(collection => collection.status === filterStatus);
     }
 
+    if (filterActiveStatus !== "all") {
+      filtered = filtered.filter(collection => collection.active_status === filterActiveStatus);
+    }
+
     setFilteredCollections(filtered);
   };
 
@@ -151,6 +158,7 @@ const Collections = () => {
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         status: formData.status,
+        active_status: formData.active_status,
         description: formData.description || null,
         budget: formData.budget ? parseFloat(formData.budget) : null,
       };
@@ -196,6 +204,7 @@ const Collections = () => {
       start_date: collection.start_date || "",
       end_date: collection.end_date || "",
       status: collection.status,
+      active_status: collection.active_status,
       description: collection.description || "",
       budget: collection.budget?.toString() || ""
     });
@@ -225,6 +234,7 @@ const Collections = () => {
       start_date: "",
       end_date: "",
       status: "planejamento",
+      active_status: "ativo",
       description: "",
       budget: ""
     });
@@ -359,6 +369,18 @@ const Collections = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="active_status">Status Coleção</Label>
+                  <Select value={formData.active_status} onValueChange={(value) => setFormData({ ...formData, active_status: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ativo">Ativo</SelectItem>
+                      <SelectItem value="encerrado">Encerrado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="start_date">Data Início</Label>
                   <Input
                     id="start_date"
@@ -367,6 +389,9 @@ const Collections = () => {
                     onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="end_date">Data Fim</Label>
                   <Input
@@ -376,17 +401,16 @@ const Collections = () => {
                     onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="budget">Orçamento (R$)</Label>
-                <Input
-                  id="budget"
-                  type="number"
-                  step="0.01"
-                  value={formData.budget}
-                  onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="budget">Orçamento (R$)</Label>
+                  <Input
+                    id="budget"
+                    type="number"
+                    step="0.01"
+                    value={formData.budget}
+                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -422,6 +446,16 @@ const Collections = () => {
             className="pl-10"
           />
         </div>
+        <Select value={filterActiveStatus} onValueChange={setFilterActiveStatus}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Status da Coleção" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="ativo">Ativas</SelectItem>
+            <SelectItem value="encerrado">Encerradas</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Status" />
@@ -457,6 +491,9 @@ const Collections = () => {
                         <Badge className={getStatusColor(collection.status)}>
                           <StatusIcon className="h-3 w-3 mr-1" />
                           {statusOptions.find(s => s.value === collection.status)?.label}
+                        </Badge>
+                        <Badge variant={collection.active_status === 'ativo' ? 'default' : 'secondary'}>
+                          {collection.active_status === 'ativo' ? 'Ativo' : 'Encerrado'}
                         </Badge>
                       </div>
                     </div>
