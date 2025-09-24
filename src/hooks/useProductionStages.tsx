@@ -11,6 +11,7 @@ interface ProductionStage {
   actual_date?: string;
   status: string;
   notes?: string;
+  maqueteira_responsavel?: string;
 }
 
 interface ProductFile {

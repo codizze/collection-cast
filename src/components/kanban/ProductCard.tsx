@@ -35,6 +35,7 @@ interface ProductCardProps {
     expected_date?: string;
     actual_date?: string;
     status: string;
+    maqueteira_responsavel?: string;
   } | null;
   isOverdue: boolean;
   onStageUpdate: (productId: string, newStage: string) => void;
@@ -169,6 +170,13 @@ export function ProductCard({
           </Badge>
         )}
       </div>
+
+      {/* Modelista */}
+      {currentStage?.maqueteira_responsavel && (
+        <div className="text-xs text-muted-foreground mb-2">
+          <span className="font-medium">Modelista:</span> {currentStage.maqueteira_responsavel}
+        </div>
+      )}
 
       {/* Dates */}
       {currentStage?.expected_date && (
