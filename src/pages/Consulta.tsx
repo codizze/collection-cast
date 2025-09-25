@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useProductionStages } from "@/hooks/useProductionStages";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Package, Calendar, User, Building2, FolderOpen, Tag, DollarSign, Ruler, Trophy } from "lucide-react";
+import { Search, Package, Calendar, User, Building2, FolderOpen, Tag, Trophy } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -125,113 +126,114 @@ const Consulta = () => {
           {filteredProducts.length} produto(s) encontrado(s)
         </div>
 
-        {filteredProducts.map((product) => {
-          const currentStage = getCurrentStageInfo(product);
-          
-          return (
-            <Card key={product.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex gap-6">
-                  {/* Product Image */}
-                  <div className="flex-shrink-0">
-                    <Avatar className="h-20 w-20 rounded-lg">
-                      <AvatarImage 
-                        src={product.image_url} 
-                        alt={product.name}
-                        className="object-cover rounded-lg"
-                      />
-                      <AvatarFallback className="rounded-lg bg-muted">
-                        <Package className="h-8 w-8 text-muted-foreground" />
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-
-                  {/* Product Details */}
-                  <div className="flex-1 space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-                      <div>
-                        <h3 className="text-lg font-semibold">{product.name || "Sem nome"}</h3>
-                        <p className="text-sm text-muted-foreground">Código: {product.code}</p>
-                      </div>
-                      <div className="flex gap-2">
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-16">Foto</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Prioridade</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Estágio Atual</TableHead>
+                  <TableHead>Data Prevista</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Coleção</TableHead>
+                  <TableHead>Responsável</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.map((product) => {
+                  const currentStage = getCurrentStageInfo(product);
+                  
+                  return (
+                    <TableRow key={product.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <Avatar className="h-12 w-12 rounded-lg">
+                          <AvatarImage 
+                            src={product.image_url} 
+                            alt={product.name}
+                            className="object-cover rounded-lg"
+                          />
+                          <AvatarFallback className="rounded-lg bg-muted">
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                          </AvatarFallback>
+                        </Avatar>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{product.name || "Sem nome"}</div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-mono text-sm">{product.code}</span>
+                      </TableCell>
+                      <TableCell>
                         <Badge className={getPriorityColor(product.priority || "media")}>
                           <Trophy className="h-3 w-3 mr-1" />
                           {product.priority || "Média"}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
                         <Badge className={getStatusColor(product.status)}>
                           <Tag className="h-3 w-3 mr-1" />
                           {product.status}
                         </Badge>
-                      </div>
-                    </div>
-
-                    {/* Current Stage */}
-                    {currentStage && (
-                      <div className="bg-muted/50 rounded-lg p-3">
-                        <div className="flex items-center gap-2 text-sm font-medium">
-                          <Calendar className="h-4 w-4" />
-                          Estágio Atual: <span className="text-primary">{currentStage.stage_name}</span>
-                        </div>
-                        {currentStage.expected_date && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Data prevista: {format(new Date(currentStage.expected_date), "dd/MM/yyyy", { locale: ptBR })}
-                          </p>
+                      </TableCell>
+                      <TableCell>
+                        {currentStage ? (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3 text-primary" />
+                            <span className="text-sm font-medium text-primary">
+                              {currentStage.stage_name}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
                         )}
-                        {currentStage.maqueteira_responsavel && (
-                          <p className="text-xs text-muted-foreground">
-                            Responsável: {currentStage.maqueteira_responsavel}
-                          </p>
+                      </TableCell>
+                      <TableCell>
+                        {currentStage?.expected_date ? (
+                          <span className="text-sm">
+                            {format(new Date(currentStage.expected_date), "dd/MM/yyyy", { locale: ptBR })}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
                         )}
-                      </div>
-                    )}
-
-                    {/* Product Information Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">Cliente:</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Building2 className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm">{product.client_name || "Não definido"}</span>
                         </div>
-                        <p className="text-muted-foreground pl-6">{product.client_name || "Não definido"}</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <FolderOpen className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">Coleção:</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <FolderOpen className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm">{product.collection_name || "Não definido"}</span>
                         </div>
-                        <p className="text-muted-foreground pl-6">{product.collection_name || "Não definido"}</p>
-                      </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          {currentStage?.maqueteira_responsavel || "Não definido"}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
 
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">Modelista:</span>
-                        </div>
-                        <p className="text-muted-foreground pl-6">Não disponível</p>
-                      </div>
-
-                    </div>
-
-                    {/* Description - Placeholder as not available in current interface */}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-
-        {filteredProducts.length === 0 && (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Nenhum produto encontrado</h3>
-              <p className="text-muted-foreground">
-                Tente ajustar os filtros ou termos de busca para encontrar produtos.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+            {filteredProducts.length === 0 && (
+              <div className="p-12 text-center">
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Nenhum produto encontrado</h3>
+                <p className="text-muted-foreground">
+                  Tente ajustar os filtros ou termos de busca para encontrar produtos.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
