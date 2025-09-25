@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   ChevronDown,
-  Settings
+  Settings,
+  Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,11 @@ const Navigation = () => {
           title: "Produção",
           href: "/production-workflow",
           icon: Kanban
+        },
+        {
+          title: "Consulta",
+          href: "/consulta",
+          icon: Search
         },
         {
           title: "Relatórios",

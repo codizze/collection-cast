@@ -18,6 +18,7 @@ import MaterialDetail from "./pages/MaterialDetail";
 import ProductionConfig from "./pages/ProductionConfig";
 import Workflow from "./pages/Workflow";
 import ProductWorkflow from "./pages/ProductWorkflow";
+import Consulta from "./pages/Consulta";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/production-config" element={<ProductionConfig />} />
             <Route path="/workflow" element={<Workflow />} />
             <Route path="/production-workflow" element={<ProductWorkflow />} />
+            <Route path="/consulta" element={<Consulta />} />
             <Route path="/clients/:id" element={<ClientDetail />} />
             <Route path="/collections/:id" element={<CollectionDetail />} />
             <Route path="/products/:id" element={<ProductDetail />} />
