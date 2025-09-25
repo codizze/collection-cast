@@ -37,9 +37,7 @@ const Consulta = () => {
   };
 
   const getCurrentStageInfo = (product: any) => {
-    const currentStage = product.stages?.find((stage: any) => stage.status === "em_andamento") || 
-                        product.stages?.find((stage: any) => stage.status === "pendente");
-    return currentStage;
+    return product.current_stage;
   };
 
   const filteredProducts = products.filter(product => {
