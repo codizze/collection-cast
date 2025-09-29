@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, FileText, AlertTriangle, CheckCircle, Clock, MoreVertical } from "lucide-react";
+import { Calendar, FileText, AlertTriangle, CheckCircle, Clock, MoreVertical, Edit } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { FileUpload } from "./FileUpload";
 import { ImageGallery } from "./ImageGallery";
 import { SetMainImage } from "./SetMainImage";
+import { EditStageDialog } from "./EditStageDialog";
 
 interface ProductFile {
   id: string;
@@ -31,16 +32,19 @@ interface ProductCardProps {
   };
   files: ProductFile[];
   currentStage: {
+    id: string;
     stage_name: string;
     expected_date?: string;
     actual_date?: string;
     status: string;
     maqueteira_responsavel?: string;
+    notes?: string;
   } | null;
   isOverdue: boolean;
   onStageUpdate: (productId: string, newStage: string) => void;
   onFileUpload: (productId: string, file: File) => Promise<void>;
   onFileDelete: (fileId: string) => Promise<void>;
+  onRefetch?: () => void;
 }
 
 export function ProductCard({ 
@@ -50,10 +54,12 @@ export function ProductCard({
   isOverdue, 
   onStageUpdate, 
   onFileUpload, 
-  onFileDelete 
+  onFileDelete,
+  onRefetch
 }: ProductCardProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [editStageOpen, setEditStageOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -133,6 +139,10 @@ export function ProductCard({
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setDetailsOpen(true)}>
               Ver detalhes
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setEditStageOpen(true)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Editar estágio
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onStageUpdate(product.id, 'next')}>
               Avançar etapa
@@ -299,6 +309,18 @@ export function ProductCard({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Stage Dialog */}
+      <EditStageDialog
+        open={editStageOpen}
+        onOpenChange={setEditStageOpen}
+        stage={currentStage}
+        productId={product.id}
+        onStageUpdated={() => {
+          onRefetch?.();
+          setEditStageOpen(false);
+        }}
+      />
     </Card>
   );
 }

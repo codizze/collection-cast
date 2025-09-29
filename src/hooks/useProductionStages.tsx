@@ -161,7 +161,8 @@ export function useProductionStages() {
           expected_date: undefined,
           actual_date: undefined,
           status: 'pendente',
-          notes: undefined
+          notes: undefined,
+          maqueteira_responsavel: undefined
         };
 
         return {

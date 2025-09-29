@@ -298,6 +298,7 @@ export function ProductWorkflow() {
                                   onStageUpdate={handleStageUpdate}
                                   onFileUpload={handleFileUpload}
                                   onFileDelete={handleFileDelete}
+                                  onRefetch={refetch}
                                 />
                               </div>
                             )}
