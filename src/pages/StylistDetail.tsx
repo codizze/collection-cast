@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, User, Edit, DollarSign, Calendar, Mail, Phone, Star, Folder, Award } from "lucide-react";
+import { ArrowLeft, User, Edit, DollarSign, Calendar, Mail, Phone, Star, Folder, Award, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,10 +36,26 @@ interface StylistCollection {
   };
 }
 
+interface Product {
+  id: string;
+  name: string;
+  code: string;
+  image_url?: string;
+  status: string;
+  current_stage?: {
+    stage_name: string;
+    status: string;
+  };
+  collection: {
+    name: string;
+  };
+}
+
 const StylistDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [stylist, setStylist] = useState<Stylist | null>(null);
   const [collections, setCollections] = useState<StylistCollection[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -81,6 +97,52 @@ const StylistDetail = () => {
 
       if (collectionsError) throw collectionsError;
       setCollections(collectionsData || []);
+
+      // Fetch products assigned to this stylist
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          code,
+          image_url,
+          status,
+          collections!inner(name)
+        `)
+        .eq('stylist_id', id)
+        .order('created_at', { ascending: false });
+
+      if (productsError) throw productsError;
+
+      // Fetch production stages for these products
+      if (productsData && productsData.length > 0) {
+        const productIds = productsData.map(p => p.id);
+        const { data: stagesData, error: stagesError } = await supabase
+          .from('production_stages')
+          .select('product_id, stage_name, status, stage_order')
+          .in('product_id', productIds)
+          .order('stage_order');
+
+        if (!stagesError && stagesData) {
+          const productsWithStages = productsData.map(product => {
+            const productStages = stagesData.filter(s => s.product_id === product.id);
+            const currentStage = productStages.find(s => s.status === 'em_andamento' || s.status === 'pendente');
+            
+            return {
+              id: product.id,
+              name: product.name,
+              code: product.code,
+              image_url: product.image_url,
+              status: product.status,
+              collection: product.collections,
+              current_stage: currentStage || productStages[productStages.length - 1]
+            };
+          });
+          setProducts(productsWithStages);
+        }
+      } else {
+        setProducts([]);
+      }
     } catch (error) {
       console.error('Erro ao buscar detalhes do modelista:', error);
       toast({
@@ -282,6 +344,70 @@ const StylistDetail = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Products in Production */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Produtos em Produção ({products.length})
+            </CardTitle>
+            <Link to="/workflow">
+              <Button variant="outline" size="sm">
+                Ver Workflow Completo
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {products.length === 0 ? (
+            <div className="text-center py-8">
+              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">Nenhum produto em produção</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {products.map((product) => (
+                <Link key={product.id} to="/workflow">
+                  <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                    <CardContent className="p-4">
+                      <div className="aspect-square mb-3 bg-muted rounded-md overflow-hidden">
+                        {product.image_url ? (
+                          <img 
+                            src={product.image_url} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="h-12 w-12 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <h4 className="font-semibold text-sm">{product.name}</h4>
+                          <p className="text-xs text-muted-foreground">{product.code}</p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {product.collection?.name}
+                        </Badge>
+                        {product.current_stage && (
+                          <div className="text-xs">
+                            <span className="font-medium">Estágio:</span>
+                            <p className="text-muted-foreground">{product.current_stage.stage_name}</p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Collections */}
       <Card>
